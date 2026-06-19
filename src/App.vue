@@ -61,7 +61,7 @@
         </div>
     </div>
     <div
-    v-if="videoUrl && shortcutHelpOpen"
+    v-if="shortcutHelpOpen"
     class="shortcut-help"
     role="presentation"
     @click="closeShortcutHelp">
@@ -114,6 +114,20 @@
     @add-files="playlist.addFilesAndPlay"
     @move-item="playlist.moveItem" />
     <div class="app-tools" :class="{ 'app-tools--visible': toolsVisible }">
+        <button
+        class="shortcut-help-toggle"
+        :class="{ 'shortcut-help-toggle--active': shortcutHelpOpen }"
+        type="button"
+        :title="t('shortcutHelpTitle')"
+        :aria-label="t('shortcutHelpTitle')"
+        :aria-pressed="shortcutHelpOpen"
+        @click="toggleShortcutHelp">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path
+                d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 16.2a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4zm.02-3.05a1.05 1.05 0 1 1 0-2.1 1.05 1.05 0 0 1 0 2.1zm.05-9.45c-1.76 0-3.03 1.02-3.03 2.56h1.8c0-.57.48-.92 1.16-.92.72 0 1.13.38 1.13.98 0 .49-.29.79-.88 1.15-.94.57-1.33 1.13-1.33 2.25v.32h1.72v-.24c0-.52.2-.78.84-1.17.84-.51 1.48-1.15 1.48-2.34 0-1.54-1.22-2.59-2.89-2.59z"
+                fill="currentColor" />
+            </svg>
+        </button>
         <LanguageSwitcher :visible="toolsVisible" />
         <ThemeSwitcher :visible="toolsVisible" />
     </div>
@@ -205,7 +219,7 @@ const { dragging, onDragEnter, onDragLeave, onDragOver, onDrop } = useDropFiles(
     playlist.addFilesAndPlay,
 );
 const { controlsVisible, resetHideTimer } = useControlsVisibility(playing);
-const toolsVisible = computed(() => !videoUrl.value || controlsVisible.value);
+const toolsVisible = computed(() => !videoUrl.value || controlsVisible.value || shortcutHelpOpen.value);
 
 const closeShortcutHelp = () => {
     shortcutHelpOpen.value = false;
@@ -234,12 +248,13 @@ usePlayerShortcuts({
     changeSpeed,
     changeVolume,
     closeShortcutHelp,
-    enabled: computed(() => videoUrl.value !== null),
-    shortcutHelpOpen,
+    enabled: computed(() => true),
     playNext: playlist.playNext,
     playPrev: playlist.playPrev,
+    playerEnabled: computed(() => videoUrl.value !== null),
     resetHideTimer,
     seekBy,
+    shortcutHelpOpen,
     takeScreenshot,
     toggleFullscreen,
     toggleMute,
@@ -385,6 +400,36 @@ body {
         opacity: 1;
         pointer-events: auto;
         transform: translateY(0);
+    }
+}
+
+.shortcut-help-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--color-floating-border);
+    border-radius: 8px;
+    background: var(--color-floating-bg);
+    color: var(--color-floating-text);
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s,
+        color 0.2s;
+
+    &:hover {
+        background: var(--color-floating-bg-hover);
+        border-color: var(--color-floating-border-hover);
+        box-shadow: var(--shadow-floating-hover);
+    }
+
+    &--active {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
     }
 }
 

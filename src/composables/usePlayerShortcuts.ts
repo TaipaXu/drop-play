@@ -12,11 +12,12 @@ export interface PlayerShortcutsOptions {
     changeVolume: (delta: number) => void;
     closeShortcutHelp: () => void;
     enabled: Ref<boolean>;
-    shortcutHelpOpen: Ref<boolean>;
     playNext: () => void;
     playPrev: () => void;
+    playerEnabled: Ref<boolean>;
     resetHideTimer: () => void;
     seekBy: (delta: number) => void;
+    shortcutHelpOpen: Ref<boolean>;
     takeScreenshot: () => void;
     toggleFullscreen: () => void;
     toggleMute: () => void;
@@ -29,11 +30,12 @@ export const usePlayerShortcuts = ({
     changeVolume,
     closeShortcutHelp,
     enabled,
-    shortcutHelpOpen,
     playNext,
     playPrev,
+    playerEnabled,
     resetHideTimer,
     seekBy,
+    shortcutHelpOpen,
     takeScreenshot,
     toggleFullscreen,
     toggleMute,
@@ -63,6 +65,7 @@ export const usePlayerShortcuts = ({
         }
 
         if (shortcutHelpOpen.value) return;
+        if (!playerEnabled.value) return;
 
         switch (event.code) {
             case 'Space':
