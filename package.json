@@ -1,0 +1,48 @@
+{
+    "name": "drop-play",
+    "version": "0.0.0",
+    "private": true,
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "dev": "vp dev",
+        "build": "run-p type-check \"build-only {@}\" --",
+        "preview": "vp preview",
+        "build-only": "vp build",
+        "type-check": "vue-tsc --build",
+        "lint": "run-s lint:*",
+        "lint:oxlint": "vp lint . --fix",
+        "lint:eslint": "eslint \"src/**/*.vue\" \"index.html\" --fix",
+        "format": "run-s format:*",
+        "format:oxfmt": "vp fmt .",
+        "format:templates": "eslint \"src/**/*.vue\" \"index.html\" --fix",
+        "prepare": "vp config"
+    },
+    "dependencies": {
+        "pinia": "^3.0.4",
+        "vue": "beta"
+    },
+    "devDependencies": {
+        "@tsconfig/node24": "^24.0.4",
+        "@types/node": "^24.12.2",
+        "@typescript-eslint/parser": "^8.61.0",
+        "@vitejs/plugin-vue": "^6.0.6",
+        "@vue/tsconfig": "^0.9.1",
+        "eslint": "^10.4.1",
+        "eslint-plugin-vue": "^10.9.2",
+        "jiti": "^2.6.1",
+        "npm-run-all2": "^8.0.4",
+        "sass": "^1.100.0",
+        "typescript": "~6.0.0",
+        "vite": "catalog:",
+        "vite-plugin-singlefile": "^2.3.3",
+        "vite-plugin-vue-devtools": "^8.1.1",
+        "vite-plus": "catalog:",
+        "vue-eslint-parser": "^10.4.1",
+        "vue-tsc": "^3.2.6"
+    },
+    "engines": {
+        "node": "24.17.0"
+    },
+    "packageManager": "pnpm@11.5.2"
+}
