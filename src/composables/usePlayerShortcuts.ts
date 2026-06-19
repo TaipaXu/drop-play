@@ -12,6 +12,8 @@ export interface PlayerShortcutsOptions {
     changeVolume: (delta: number) => void;
     closeShortcutHelp: () => void;
     enabled: Ref<boolean>;
+    pause: () => void;
+    play: () => void;
     playNext: () => void;
     playPrev: () => void;
     playerEnabled: Ref<boolean>;
@@ -30,6 +32,8 @@ export const usePlayerShortcuts = ({
     changeVolume,
     closeShortcutHelp,
     enabled,
+    pause,
+    play,
     playNext,
     playPrev,
     playerEnabled,
@@ -48,8 +52,43 @@ export const usePlayerShortcuts = ({
         if (showControls) resetHideTimer();
     };
 
+    const hasMediaKey = (event: KeyboardEvent, key: string) =>
+        event.key === key || event.code === key;
+
+    const runMediaKeyShortcut = (event: KeyboardEvent) => {
+        if (!playerEnabled.value || event.ctrlKey || event.metaKey || event.altKey) return false;
+
+        if (hasMediaKey(event, 'MediaPlayPause')) {
+            runShortcut(event, togglePlay, false);
+            return true;
+        }
+
+        if (hasMediaKey(event, 'MediaPlay')) {
+            runShortcut(event, play, false);
+            return true;
+        }
+
+        if (hasMediaKey(event, 'MediaPause') || hasMediaKey(event, 'MediaStop')) {
+            runShortcut(event, pause, false);
+            return true;
+        }
+
+        if (hasMediaKey(event, 'MediaTrackNext')) {
+            runShortcut(event, playNext);
+            return true;
+        }
+
+        if (hasMediaKey(event, 'MediaTrackPrevious')) {
+            runShortcut(event, playPrev);
+            return true;
+        }
+
+        return false;
+    };
+
     const onKeydown = (event: KeyboardEvent) => {
         if (!enabled.value) return;
+        if (runMediaKeyShortcut(event)) return;
 
         if (event.code === 'Escape' && shortcutHelpOpen.value) {
             runShortcut(event, closeShortcutHelp, false);

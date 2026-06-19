@@ -90,14 +90,28 @@ export const useVideoPlayer = ({
         buffered.value = (video.buffered.end(video.buffered.length - 1) / video.duration) * 100;
     };
 
+    const play = () => {
+        const video = videoRef.value;
+        if (!video) return;
+
+        void video.play();
+    };
+
+    const pause = () => {
+        const video = videoRef.value;
+        if (!video) return;
+
+        video.pause();
+    };
+
     const togglePlay = () => {
         const video = videoRef.value;
         if (!video) return;
 
         if (video.paused) {
-            void video.play();
+            play();
         } else {
-            video.pause();
+            pause();
         }
     };
 
@@ -243,6 +257,8 @@ export const useVideoPlayer = ({
         onPlayerDblclick,
         onTimeUpdate,
         onVolumeChange,
+        pause,
+        play,
         playing,
         resetPlaybackState,
         seek,

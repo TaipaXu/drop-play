@@ -143,6 +143,7 @@ import { useControlsVisibility } from './composables/useControlsVisibility';
 import { useDropFiles } from './composables/useDropFiles';
 import { useI18n, type MessageKey } from './composables/useI18n';
 import { usePlayerShortcuts } from './composables/usePlayerShortcuts';
+import { useSystemPlaybackControls } from './composables/useSystemPlaybackControls';
 import { playbackSpeeds, useVideoPlayer } from './composables/useVideoPlayer';
 import { usePlaylistStore } from './stores/playlist';
 
@@ -192,6 +193,8 @@ const {
     onPlayerDblclick,
     onTimeUpdate,
     onVolumeChange,
+    pause,
+    play,
     playing,
     resetPlaybackState,
     seek,
@@ -249,6 +252,8 @@ usePlayerShortcuts({
     changeVolume,
     closeShortcutHelp,
     enabled: computed(() => true),
+    pause,
+    play,
     playNext: playlist.playNext,
     playPrev: playlist.playPrev,
     playerEnabled: computed(() => videoUrl.value !== null),
@@ -260,6 +265,21 @@ usePlayerShortcuts({
     toggleMute,
     togglePlay,
     toggleShortcutHelp,
+});
+
+useSystemPlaybackControls({
+    currentTime,
+    duration,
+    pause,
+    play,
+    playing,
+    playNext: playlist.playNext,
+    playPrev: playlist.playPrev,
+    seek,
+    seekBy,
+    speed,
+    title: videoFileName,
+    videoUrl,
 });
 
 watch(videoUrl, () => {
