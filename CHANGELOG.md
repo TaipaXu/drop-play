@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Expand player keyboard shortcuts with fullscreen, mute, volume, playback speed, and shortcut help.
 - Add theme switching with system, light, and dark modes, and remember the local preference.
 
 ## 0.1.0 - 2026-06-19

@@ -3,6 +3,8 @@ import { onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue';
 const volumeStorageKey = 'player-volume';
 const mutedStorageKey = 'player-muted';
 
+export const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
+
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 const readStoredVolume = () => {

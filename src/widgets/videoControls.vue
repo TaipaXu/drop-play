@@ -161,6 +161,7 @@
 import { ref, toRef } from 'vue';
 import { useI18n } from '../composables/useI18n';
 import { useProgressPreview } from '../composables/useProgressPreview';
+import { playbackSpeeds } from '../composables/useVideoPlayer';
 
 const props = defineProps<{
     playing: boolean;
@@ -176,7 +177,7 @@ const props = defineProps<{
     hdrEnabled: boolean;
 }>();
 
-const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
+const speeds = playbackSpeeds;
 const showSpeed = ref(false);
 const { t } = useI18n();
 
