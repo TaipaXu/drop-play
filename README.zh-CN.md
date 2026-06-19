@@ -2,7 +2,7 @@
 
 语言：[English](./README.md) | 中文
 
-[在线体验](https://taipaxu.github.io/drop-play/)
+[在线体验](https://taipaxu.github.io/drop-play/) | [下载 HTML](https://github.com/TaipaXu/drop-play/releases/latest/download/drop-play.html)
 
 Drop Play 是一个轻量的本地视频播放器。把视频文件拖进页面即可播放，也可以一次拖入多个文件形成播放列表。项目面向“无需上传、无需后端、打开即用”的本地观看场景。
 
