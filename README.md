@@ -2,6 +2,8 @@
 
 Language: English | [中文](./README.zh-CN.md)
 
+[Live Demo](https://taipaxu.github.io/drop-play/)
+
 Drop Play is a lightweight local video player. Drop video files onto the page to start playback, or drop multiple files at once to build a playlist. It is designed for local viewing with no uploads, no backend, and minimal setup.
 
 ## Features
