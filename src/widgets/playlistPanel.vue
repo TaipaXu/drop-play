@@ -199,9 +199,9 @@ const onDrop = (e: DragEvent) => {
     top: 50%;
     transform: translateY(-50%);
     z-index: 100;
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #fff;
+    background: var(--color-floating-bg);
+    border: 1px solid var(--color-floating-border);
+    color: var(--color-floating-text);
     cursor: pointer;
     padding: 10px;
     border-radius: 8px;
@@ -212,7 +212,9 @@ const onDrop = (e: DragEvent) => {
     pointer-events: none;
     transition:
         opacity 0.3s,
-        background 0.2s;
+        background 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s;
 
     &--visible {
         opacity: 1;
@@ -220,7 +222,9 @@ const onDrop = (e: DragEvent) => {
     }
 
     &:hover {
-        background: rgba(0, 0, 0, 0.9);
+        background: var(--color-floating-bg-hover);
+        border-color: var(--color-floating-border-hover);
+        box-shadow: var(--shadow-floating-hover);
     }
 }
 
@@ -230,9 +234,9 @@ const onDrop = (e: DragEvent) => {
     right: 0;
     bottom: 0;
     width: 320px;
-    background: rgba(20, 20, 20, 0.95);
+    background: var(--color-panel-bg);
     backdrop-filter: blur(12px);
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 1px solid var(--color-panel-border);
     z-index: 90;
     display: flex;
     flex-direction: column;
@@ -248,12 +252,12 @@ const onDrop = (e: DragEvent) => {
         align-items: center;
         justify-content: space-between;
         padding: 14px 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid var(--color-panel-border);
         flex-shrink: 0;
     }
 
     &__title {
-        color: #fff;
+        color: var(--color-panel-text);
         font-size: 14px;
         font-weight: 600;
     }
@@ -267,7 +271,7 @@ const onDrop = (e: DragEvent) => {
     &__action-btn {
         background: none;
         border: none;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--color-panel-muted);
         cursor: pointer;
         padding: 4px;
         border-radius: 4px;
@@ -275,8 +279,8 @@ const onDrop = (e: DragEvent) => {
         align-items: center;
 
         &:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            background: var(--color-panel-hover);
+            color: var(--color-panel-text);
         }
 
         &:disabled {
@@ -293,8 +297,8 @@ const onDrop = (e: DragEvent) => {
         position: absolute;
         top: 100%;
         right: 0;
-        background: rgba(30, 30, 30, 0.98);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: var(--color-menu-bg);
+        border: 1px solid var(--color-floating-border);
         border-radius: 8px;
         padding: 4px 0;
         margin-top: 4px;
@@ -307,7 +311,7 @@ const onDrop = (e: DragEvent) => {
         width: 100%;
         background: none;
         border: none;
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--color-floating-muted);
         font-size: 13px;
         padding: 8px 14px;
         cursor: pointer;
@@ -316,11 +320,11 @@ const onDrop = (e: DragEvent) => {
         white-space: nowrap;
 
         &:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--color-floating-hover);
         }
 
         &--active {
-            color: #00a1d6;
+            color: var(--color-accent);
         }
     }
 
@@ -329,7 +333,7 @@ const onDrop = (e: DragEvent) => {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: rgba(255, 255, 255, 0.35);
+        color: var(--color-panel-faint);
         font-size: 14px;
         padding: 24px;
         text-align: center;
@@ -345,7 +349,7 @@ const onDrop = (e: DragEvent) => {
         }
 
         &::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--color-scrollbar-thumb);
             border-radius: 3px;
         }
     }
@@ -356,26 +360,26 @@ const onDrop = (e: DragEvent) => {
         gap: 10px;
         padding: 10px 16px;
         cursor: pointer;
-        color: rgba(255, 255, 255, 0.75);
+        color: var(--color-panel-muted);
         font-size: 13px;
         transition: background 0.15s;
         user-select: none;
 
         &:hover {
-            background: rgba(255, 255, 255, 0.06);
+            background: var(--color-panel-hover);
         }
 
         &--active {
-            background: rgba(0, 161, 214, 0.15);
-            color: #00a1d6;
+            background: var(--color-panel-active-bg);
+            color: var(--color-accent);
 
             .playlist__index {
-                color: #00a1d6;
+                color: var(--color-accent);
             }
         }
 
         &--drag-over {
-            border-top: 2px solid #00a1d6;
+            border-top: 2px solid var(--color-accent);
             padding-top: 8px;
         }
     }
@@ -385,7 +389,7 @@ const onDrop = (e: DragEvent) => {
         width: 24px;
         text-align: center;
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.35);
+        color: var(--color-panel-faint);
         font-variant-numeric: tabular-nums;
     }
 
@@ -400,7 +404,7 @@ const onDrop = (e: DragEvent) => {
         flex-shrink: 0;
         background: none;
         border: none;
-        color: rgba(255, 255, 255, 0.3);
+        color: var(--color-panel-faint);
         cursor: pointer;
         padding: 2px;
         border-radius: 2px;
@@ -416,7 +420,7 @@ const onDrop = (e: DragEvent) => {
         }
 
         &:hover {
-            color: #f44336;
+            color: var(--color-danger);
         }
     }
 }

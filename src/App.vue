@@ -60,7 +60,6 @@
             @take-screenshot="takeScreenshot" />
         </div>
     </div>
-    <LanguageSwitcher :visible="!videoUrl || controlsVisible" />
     <PlaylistPanel
     :open="playlistOpen"
     :items="playlist.items"
@@ -75,11 +74,16 @@
     @sort="playlist.sort"
     @add-files="playlist.addFilesAndPlay"
     @move-item="playlist.moveItem" />
+    <div class="app-tools" :class="{ 'app-tools--visible': toolsVisible }">
+        <LanguageSwitcher :visible="toolsVisible" />
+        <ThemeSwitcher :visible="toolsVisible" />
+    </div>
 </template>
 
 <script setup vapor lang="ts">
 import { computed, ref, watch, onBeforeUnmount } from 'vue';
 import LanguageSwitcher from './widgets/languageSwitcher.vue';
+import ThemeSwitcher from './widgets/themeSwitcher.vue';
 import VideoControls from './widgets/videoControls.vue';
 import PlaylistPanel from './widgets/playlistPanel.vue';
 import { useControlsVisibility } from './composables/useControlsVisibility';
@@ -140,6 +144,7 @@ const { dragging, onDragEnter, onDragLeave, onDragOver, onDrop } = useDropFiles(
     playlist.addFilesAndPlay,
 );
 const { controlsVisible, resetHideTimer } = useControlsVisibility(playing);
+const toolsVisible = computed(() => !videoUrl.value || controlsVisible.value);
 
 usePlayerShortcuts({
     enabled: computed(() => videoUrl.value !== null),
@@ -165,6 +170,97 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss">
+:root,
+:root[data-theme='light'] {
+    color-scheme: light;
+    --color-accent: #00a1d6;
+    --color-accent-strong: #409eff;
+    --color-app-bg: #f6f8fb;
+    --color-drop-border: #9aa7b5;
+    --color-drop-text: #4b5563;
+    --color-player-bg: #eef2f7;
+    --color-floating-bg: rgba(255, 255, 255, 0.86);
+    --color-floating-bg-hover: rgba(255, 255, 255, 0.98);
+    --color-floating-border: rgba(15, 23, 42, 0.14);
+    --color-floating-border-hover: rgba(15, 23, 42, 0.22);
+    --color-floating-text: #172033;
+    --color-floating-muted: rgba(23, 32, 51, 0.68);
+    --color-floating-hover: rgba(15, 23, 42, 0.07);
+    --color-menu-bg: rgba(255, 255, 255, 0.96);
+    --color-panel-bg: rgba(255, 255, 255, 0.94);
+    --color-panel-border: rgba(15, 23, 42, 0.1);
+    --color-panel-text: #172033;
+    --color-panel-muted: rgba(23, 32, 51, 0.64);
+    --color-panel-faint: rgba(23, 32, 51, 0.4);
+    --color-panel-hover: rgba(15, 23, 42, 0.06);
+    --color-panel-active-bg: rgba(0, 161, 214, 0.12);
+    --color-scrollbar-thumb: rgba(15, 23, 42, 0.18);
+    --color-danger: #d93025;
+    --shadow-floating-hover: 0 6px 16px rgba(15, 23, 42, 0.12);
+    --shadow-menu: 0 8px 24px rgba(15, 23, 42, 0.16);
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --color-app-bg: #0f1117;
+    --color-drop-border: #4a5568;
+    --color-drop-text: rgba(255, 255, 255, 0.64);
+    --color-player-bg: #111;
+    --color-floating-bg: rgba(0, 0, 0, 0.72);
+    --color-floating-bg-hover: rgba(0, 0, 0, 0.9);
+    --color-floating-border: rgba(255, 255, 255, 0.16);
+    --color-floating-border-hover: rgba(255, 255, 255, 0.28);
+    --color-floating-text: #fff;
+    --color-floating-muted: rgba(255, 255, 255, 0.78);
+    --color-floating-hover: rgba(255, 255, 255, 0.08);
+    --color-menu-bg: rgba(20, 20, 20, 0.96);
+    --color-panel-bg: rgba(20, 20, 20, 0.95);
+    --color-panel-border: rgba(255, 255, 255, 0.08);
+    --color-panel-text: #fff;
+    --color-panel-muted: rgba(255, 255, 255, 0.68);
+    --color-panel-faint: rgba(255, 255, 255, 0.35);
+    --color-panel-hover: rgba(255, 255, 255, 0.06);
+    --color-panel-active-bg: rgba(0, 161, 214, 0.15);
+    --color-scrollbar-thumb: rgba(255, 255, 255, 0.15);
+    --color-danger: #f44336;
+    --shadow-floating-hover: none;
+    --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.32);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        color-scheme: dark;
+        --color-app-bg: #0f1117;
+        --color-drop-border: #4a5568;
+        --color-drop-text: rgba(255, 255, 255, 0.64);
+        --color-player-bg: #111;
+        --color-floating-bg: rgba(0, 0, 0, 0.72);
+        --color-floating-bg-hover: rgba(0, 0, 0, 0.9);
+        --color-floating-border: rgba(255, 255, 255, 0.16);
+        --color-floating-border-hover: rgba(255, 255, 255, 0.28);
+        --color-floating-text: #fff;
+        --color-floating-muted: rgba(255, 255, 255, 0.78);
+        --color-floating-hover: rgba(255, 255, 255, 0.08);
+        --color-menu-bg: rgba(20, 20, 20, 0.96);
+        --color-panel-bg: rgba(20, 20, 20, 0.95);
+        --color-panel-border: rgba(255, 255, 255, 0.08);
+        --color-panel-text: #fff;
+        --color-panel-muted: rgba(255, 255, 255, 0.68);
+        --color-panel-faint: rgba(255, 255, 255, 0.35);
+        --color-panel-hover: rgba(255, 255, 255, 0.06);
+        --color-panel-active-bg: rgba(0, 161, 214, 0.15);
+        --color-scrollbar-thumb: rgba(255, 255, 255, 0.15);
+        --color-danger: #f44336;
+        --shadow-floating-hover: none;
+        --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.32);
+    }
+}
+
+body {
+    background: var(--color-app-bg);
+    color: var(--color-panel-text);
+}
+
 .app-shell {
     display: flex;
     flex-direction: column;
@@ -176,18 +272,42 @@ onBeforeUnmount(() => {
     overflow: hidden;
 }
 
+.app-tools {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        opacity 0.3s,
+        transform 0.3s;
+    transform: translateY(-4px);
+
+    &--visible {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+}
+
 .drop-zone {
-    border: 3px dashed #666;
-    color: #999;
+    background: var(--color-app-bg);
+    border: 3px dashed var(--color-drop-border);
+    color: var(--color-drop-text);
     font-size: 1.25rem;
     transition:
+        background 0.2s,
         border-color 0.2s,
         color 0.2s;
     user-select: none;
 
     &--dragging {
-        border-color: #409eff;
-        color: #409eff;
+        border-color: var(--color-accent-strong);
+        color: var(--color-accent-strong);
     }
 }
 
@@ -198,10 +318,10 @@ onBeforeUnmount(() => {
     justify-content: center;
     width: 100vw;
     height: 100vh;
-    background: #111;
+    background: var(--color-player-bg);
 
     &--dragging {
-        outline: 3px dashed #409eff;
+        outline: 3px dashed var(--color-accent-strong);
         outline-offset: -3px;
     }
 
@@ -237,7 +357,7 @@ onBeforeUnmount(() => {
         align-items: center;
         justify-content: center;
         background: rgba(0, 0, 0, 0.6);
-        color: #409eff;
+        color: var(--color-accent-strong);
         font-size: 1.25rem;
         z-index: 10;
         pointer-events: none;

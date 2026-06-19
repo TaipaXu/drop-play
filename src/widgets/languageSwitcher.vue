@@ -1,5 +1,5 @@
 <template>
-    <div class="language-switcher" :class="{ 'language-switcher--visible': visible }">
+    <div class="language-switcher">
         <button
         class="language-switcher__button"
         type="button"
@@ -73,22 +73,7 @@ watch(
 
 <style lang="scss">
 .language-switcher {
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 100;
-    opacity: 0;
-    pointer-events: none;
-    transition:
-        opacity 0.3s,
-        transform 0.3s;
-    transform: translateY(-4px);
-
-    &--visible {
-        opacity: 1;
-        pointer-events: auto;
-        transform: translateY(0);
-    }
+    position: relative;
 
     &__button {
         display: flex;
@@ -97,21 +82,23 @@ watch(
         min-width: 72px;
         height: 36px;
         padding: 0 10px;
-        border: 1px solid rgba(255, 255, 255, 0.16);
+        border: 1px solid var(--color-floating-border);
         border-radius: 8px;
-        background: rgba(0, 0, 0, 0.72);
-        color: #fff;
+        background: var(--color-floating-bg);
+        color: var(--color-floating-text);
         cursor: pointer;
         font: inherit;
         font-size: 13px;
         justify-content: center;
         transition:
             background 0.2s,
-            border-color 0.2s;
+            border-color 0.2s,
+            box-shadow 0.2s;
 
         &:hover {
-            background: rgba(0, 0, 0, 0.9);
-            border-color: rgba(255, 255, 255, 0.28);
+            background: var(--color-floating-bg-hover);
+            border-color: var(--color-floating-border-hover);
+            box-shadow: var(--shadow-floating-hover);
         }
     }
 
@@ -121,11 +108,11 @@ watch(
         left: 0;
         min-width: 140px;
         padding: 4px 0;
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        border: 1px solid var(--color-floating-border);
         border-radius: 8px;
-        background: rgba(20, 20, 20, 0.96);
+        background: var(--color-menu-bg);
         backdrop-filter: blur(12px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+        box-shadow: var(--shadow-menu);
     }
 
     &__option {
@@ -134,7 +121,7 @@ watch(
         padding: 8px 14px;
         border: none;
         background: none;
-        color: rgba(255, 255, 255, 0.78);
+        color: var(--color-floating-muted);
         cursor: pointer;
         font: inherit;
         font-size: 13px;
@@ -142,12 +129,12 @@ watch(
         white-space: nowrap;
 
         &:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
+            background: var(--color-floating-hover);
+            color: var(--color-floating-text);
         }
 
         &--active {
-            color: #00a1d6;
+            color: var(--color-accent);
         }
     }
 }
