@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-06-21
+
 - Add system media controls with Media Session metadata, hardware media key support, and playlist navigation.
 - Request browser screen Wake Lock during playback and release it when playback pauses or the page unloads.
 - Expand player keyboard shortcuts with fullscreen, mute, volume, playback speed, and an app toolbar shortcut help button.
