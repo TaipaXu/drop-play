@@ -83,10 +83,22 @@ export const useVideoPlayer = ({
         playing.value = false;
     };
 
+    const syncPlaybackSpeed = (video: HTMLVideoElement, value = speed.value) => {
+        video.defaultPlaybackRate = value;
+        video.playbackRate = value;
+    };
+
     const syncVideoSettings = (video: HTMLVideoElement) => {
         video.volume = volume.value;
         video.muted = muted.value;
-        video.playbackRate = speed.value;
+        syncPlaybackSpeed(video);
+    };
+
+    const syncCurrentVideoSettings = () => {
+        const video = videoRef.value;
+        if (!video) return;
+
+        syncVideoSettings(video);
     };
 
     const onTimeUpdate = () => {
@@ -106,6 +118,11 @@ export const useVideoPlayer = ({
         duration.value = videoRef.value?.duration ?? 0;
     };
 
+    const onLoadedMetadata = () => {
+        syncCurrentVideoSettings();
+        onDurationChange();
+    };
+
     const onSeeked = () => {
         clearPendingSeek();
         currentTime.value = videoRef.value?.currentTime ?? currentTime.value;
@@ -120,6 +137,9 @@ export const useVideoPlayer = ({
     };
 
     const onPlay = () => {
+        const video = videoRef.value;
+        if (video) syncPlaybackSpeed(video);
+
         playing.value = true;
     };
 
@@ -174,11 +194,11 @@ export const useVideoPlayer = ({
     };
 
     const setSpeed = (value: number) => {
-        const video = videoRef.value;
-        if (!video || !Number.isFinite(value)) return;
+        if (!Number.isFinite(value)) return;
 
         speed.value = value;
-        video.playbackRate = value;
+        const video = videoRef.value;
+        if (video) syncPlaybackSpeed(video, value);
     };
 
     const seek = (time: number) => {
@@ -313,6 +333,7 @@ export const useVideoPlayer = ({
         isFullscreen,
         muted,
         onDurationChange,
+        onLoadedMetadata,
         onPause,
         onPlay,
         onPlayerClick,

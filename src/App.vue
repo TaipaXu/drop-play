@@ -30,6 +30,7 @@
             :style="hdrStyle"
             @timeupdate="onTimeUpdate"
             @durationchange="onDurationChange"
+            @loadedmetadata="onLoadedMetadata"
             @volumechange="onVolumeChange"
             @seeked="onSeeked"
             @play="onPlay"
@@ -188,6 +189,7 @@ const {
     isFullscreen,
     muted,
     onDurationChange,
+    onLoadedMetadata,
     onPause,
     onPlay,
     onPlayerClick,
