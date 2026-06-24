@@ -31,6 +31,7 @@
             @timeupdate="onTimeUpdate"
             @durationchange="onDurationChange"
             @volumechange="onVolumeChange"
+            @seeked="onSeeked"
             @play="onPlay"
             @pause="onPause"
             @progress="updateBuffered"
@@ -191,6 +192,7 @@ const {
     onPlay,
     onPlayerClick,
     onPlayerDblclick,
+    onSeeked,
     onTimeUpdate,
     onVolumeChange,
     pause,

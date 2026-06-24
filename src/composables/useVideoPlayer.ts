@@ -2,6 +2,8 @@ import { onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue';
 
 const volumeStorageKey = 'player-volume';
 const mutedStorageKey = 'player-muted';
+const seekCompletionTolerance = 0.5;
+const pendingSeekTimeout = 3000;
 
 export const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 
@@ -45,8 +47,36 @@ export const useVideoPlayer = ({
     const isFullscreen = ref(false);
     const hdrEnabled = ref(false);
     let clickTimer: ReturnType<typeof setTimeout> | null = null;
+    let pendingSeekTime: number | null = null;
+    let pendingSeekTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const clearPendingSeek = () => {
+        pendingSeekTime = null;
+
+        if (!pendingSeekTimer) return;
+
+        clearTimeout(pendingSeekTimer);
+        pendingSeekTimer = null;
+    };
+
+    const schedulePendingSeekFallback = () => {
+        if (pendingSeekTimer) clearTimeout(pendingSeekTimer);
+
+        pendingSeekTimer = setTimeout(() => {
+            pendingSeekTimer = null;
+            pendingSeekTime = null;
+            currentTime.value = videoRef.value?.currentTime ?? currentTime.value;
+        }, pendingSeekTimeout);
+    };
+
+    const commitSeekTarget = (time: number) => {
+        pendingSeekTime = time;
+        currentTime.value = time;
+        schedulePendingSeekFallback();
+    };
 
     const resetPlaybackState = () => {
+        clearPendingSeek();
         currentTime.value = 0;
         duration.value = 0;
         buffered.value = 0;
@@ -60,11 +90,25 @@ export const useVideoPlayer = ({
     };
 
     const onTimeUpdate = () => {
-        currentTime.value = videoRef.value?.currentTime ?? 0;
+        const time = videoRef.value?.currentTime ?? 0;
+        if (
+            pendingSeekTime !== null &&
+            Math.abs(time - pendingSeekTime) > seekCompletionTolerance
+        ) {
+            return;
+        }
+
+        currentTime.value = time;
+        if (pendingSeekTime !== null) clearPendingSeek();
     };
 
     const onDurationChange = () => {
         duration.value = videoRef.value?.duration ?? 0;
+    };
+
+    const onSeeked = () => {
+        clearPendingSeek();
+        currentTime.value = videoRef.value?.currentTime ?? currentTime.value;
     };
 
     const onVolumeChange = () => {
@@ -141,14 +185,31 @@ export const useVideoPlayer = ({
         const video = videoRef.value;
         if (!video || !Number.isFinite(time) || !Number.isFinite(video.duration)) return;
 
-        video.currentTime = clamp(time, 0, video.duration);
+        const nextTime = clamp(time, 0, video.duration);
+        commitSeekTarget(nextTime);
+
+        try {
+            video.currentTime = nextTime;
+        } catch {
+            clearPendingSeek();
+            currentTime.value = video.currentTime;
+        }
     };
 
     const seekBy = (delta: number) => {
         const video = videoRef.value;
         if (!video || !Number.isFinite(video.duration)) return;
 
-        video.currentTime = clamp(video.currentTime + delta, 0, video.duration);
+        const baseTime = pendingSeekTime ?? video.currentTime;
+        const nextTime = clamp(baseTime + delta, 0, video.duration);
+        commitSeekTarget(nextTime);
+
+        try {
+            video.currentTime = nextTime;
+        } catch {
+            clearPendingSeek();
+            currentTime.value = video.currentTime;
+        }
     };
 
     const toggleFullscreen = () => {
@@ -237,6 +298,7 @@ export const useVideoPlayer = ({
 
     onBeforeUnmount(() => {
         document.removeEventListener('fullscreenchange', onFullscreenChange);
+        clearPendingSeek();
 
         if (clickTimer) {
             clearTimeout(clickTimer);
@@ -255,6 +317,7 @@ export const useVideoPlayer = ({
         onPlay,
         onPlayerClick,
         onPlayerDblclick,
+        onSeeked,
         onTimeUpdate,
         onVolumeChange,
         pause,

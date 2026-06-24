@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Close the playback speed menu when clicking outside it or when player controls hide.
+- Keep progress and time display stable while seeking so the controls no longer flicker back to the previous position.
 
 ## 0.2.0 - 2026-06-21
 
