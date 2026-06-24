@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Close the playback speed menu when clicking outside it or when player controls hide.
+
 ## 0.2.0 - 2026-06-21
 
 - Add system media controls with Media Session metadata, hardware media key support, and playlist navigation.

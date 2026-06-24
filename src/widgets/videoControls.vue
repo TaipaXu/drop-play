@@ -81,11 +81,12 @@
                 </div>
 
                 <!-- speed -->
-                <div class="controls__speed-wrap">
+                <div ref="speedWrapRef" class="controls__speed-wrap">
                     <button
                     class="controls__btn controls__btn--speed"
                     :title="t('speed')"
                     :aria-label="t('speed')"
+                    :aria-expanded="showSpeed"
                     @click="showSpeed = !showSpeed">
                         {{ speed === 1 ? t('speed') : speed + 'x' }}
                     </button>
@@ -158,7 +159,7 @@
 </template>
 
 <script setup vapor lang="ts">
-import { ref, toRef } from 'vue';
+import { onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue';
 import { useI18n } from '../composables/useI18n';
 import { useProgressPreview } from '../composables/useProgressPreview';
 import { playbackSpeeds } from '../composables/useVideoPlayer';
@@ -179,6 +180,7 @@ const props = defineProps<{
 
 const speeds = playbackSpeeds;
 const showSpeed = ref(false);
+const speedWrapRef = ref<HTMLElement | null>(null);
 const { t } = useI18n();
 
 const emit = defineEmits<{
@@ -222,6 +224,30 @@ const onVolumeWheel = (e: WheelEvent) => {
     const newVolume = Math.max(0, Math.min(1, props.volume + delta));
     emit('updateVolume', Math.round(newVolume * 100) / 100);
 };
+
+const closeSpeedMenuOnOutsidePointerDown = (event: PointerEvent) => {
+    if (!showSpeed.value) return;
+
+    const speedWrap = speedWrapRef.value;
+    if (speedWrap && event.composedPath().includes(speedWrap)) return;
+
+    showSpeed.value = false;
+};
+
+onMounted(() => {
+    document.addEventListener('pointerdown', closeSpeedMenuOnOutsidePointerDown);
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('pointerdown', closeSpeedMenuOnOutsidePointerDown);
+});
+
+watch(
+    () => props.visible,
+    (visible) => {
+        if (!visible) showSpeed.value = false;
+    },
+);
 </script>
 
 <style lang="scss">
