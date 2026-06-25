@@ -7,7 +7,26 @@
     @dragover.prevent="onDragOver"
     @dragleave="onDragLeave"
     @drop.prevent="onDrop">
-        <p>{{ t('dropPrompt') }}</p>
+        <div class="drop-zone__content">
+            <p class="drop-zone__prompt">{{ t('dropPrompt') }}</p>
+            <label class="drop-zone__select">
+                <input
+                class="drop-zone__input"
+                type="file"
+                multiple
+                accept="video/*"
+                :aria-label="t('selectFiles')"
+                @change="onFileInputChange" />
+                <span class="drop-zone__select-inner">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path
+                        d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm0 2.8L17.2 8H14V4.8zM7 13h3v-3h4v3h3l-5 5-5-5z"
+                        fill="currentColor" />
+                    </svg>
+                    <span>{{ t('selectFiles') }}</span>
+                </span>
+            </label>
+        </div>
     </div>
     <div
     v-else
@@ -234,6 +253,17 @@ const closeShortcutHelp = () => {
 
 const toggleShortcutHelp = () => {
     shortcutHelpOpen.value = !shortcutHelpOpen.value;
+};
+
+const onFileInputChange = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+
+    if (files.length > 0) {
+        playlist.addFilesAndPlay(files);
+    }
+
+    input.value = '';
 };
 
 const changeVolume = (delta: number) => {
@@ -584,6 +614,82 @@ body {
         border-color: var(--color-accent-strong);
         color: var(--color-accent-strong);
     }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        width: min(680px, 100%);
+        padding: 0 24px;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    &__prompt {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    &__select {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border-radius: 8px;
+        color: var(--color-floating-text);
+        cursor: pointer;
+    }
+
+    &__select-inner {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-width: 132px;
+        min-height: 44px;
+        padding: 0 18px;
+        box-sizing: border-box;
+        border: 1px solid var(--color-floating-border);
+        border-radius: 8px;
+        background: var(--color-floating-bg);
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1;
+        transition:
+            background 0.2s,
+            border-color 0.2s,
+            box-shadow 0.2s,
+            color 0.2s;
+    }
+
+    &__select:hover &__select-inner,
+    &__select:focus-within &__select-inner {
+        background: var(--color-floating-bg-hover);
+        border-color: var(--color-floating-border-hover);
+        box-shadow: var(--shadow-floating-hover);
+        color: var(--color-accent);
+    }
+
+    &__select:focus-within &__select-inner {
+        outline: 2px solid var(--color-accent-strong);
+        outline-offset: 2px;
+    }
+
+    &__input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
 }
 
 .player-wrapper {
@@ -641,6 +747,10 @@ body {
 }
 
 @media (max-width: 560px) {
+    .drop-zone__prompt {
+        max-width: 280px;
+    }
+
     .shortcut-help {
         align-items: flex-end;
         padding: 12px;

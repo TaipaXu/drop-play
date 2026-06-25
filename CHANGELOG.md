@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add a local file picker entry on the first screen for touch and accessibility-friendly video selection.
+
 ## 0.3.0 - 2026-06-25
 
 - Add custom playback speed input with a 0.1x to 10x supported range.
