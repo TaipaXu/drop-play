@@ -11,7 +11,7 @@ export interface PlaylistItem {
 
 export type SortKey = 'custom' | 'name-asc' | 'name-desc' | 'added-asc' | 'added-desc';
 
-const videoExtensions = new Set([
+const videoExtensionList = [
     '3g2',
     '3gp',
     'avi',
@@ -24,11 +24,19 @@ const videoExtensions = new Set([
     'mpeg',
     'mpg',
     'mts',
+    'ogg',
     'ogv',
     'ts',
     'webm',
     'wmv',
-]);
+] as const;
+
+export const videoFileAccept = [
+    'video/*',
+    ...videoExtensionList.map((extension) => `.${extension}`),
+].join(',');
+
+const videoExtensions = new Set<string>(videoExtensionList);
 
 const isVideoFile = (file: File) => {
     if (file.type.startsWith('video/')) return true;
@@ -109,18 +117,29 @@ export const usePlaylistStore = defineStore('playlist', () => {
         currentId.value = firstNewId;
     };
 
-    const remove = (id: string) => {
+    const removeItem = (id: string, selectFallback: boolean) => {
         const idx = items.value.findIndex((i) => i.id === id);
         if (idx === -1) return;
         const item = items.value[idx];
+        const wasCurrent = currentId.value === id;
         if (item) URL.revokeObjectURL(item.url);
         items.value.splice(idx, 1);
 
         if (items.value.length === 0) {
             currentId.value = null;
-        } else if (currentId.value === id) {
+        } else if (wasCurrent && selectFallback) {
             currentId.value = items.value[Math.min(idx, items.value.length - 1)]?.id ?? null;
+        } else if (wasCurrent) {
+            currentId.value = null;
         }
+    };
+
+    const remove = (id: string) => {
+        removeItem(id, true);
+    };
+
+    const removeRejected = (id: string) => {
+        removeItem(id, false);
     };
 
     const clear = () => {
@@ -175,6 +194,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
         addFiles,
         addFilesAndPlay,
         remove,
+        removeRejected,
         clear,
         setCurrent,
         playNext,

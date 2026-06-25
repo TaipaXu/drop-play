@@ -1,20 +1,26 @@
 <template>
     <div
-    v-if="!videoUrl"
+    v-if="showDropZone"
     class="app-shell drop-zone"
-    :class="{ 'drop-zone--dragging': dragging }"
+    :class="{ 'drop-zone--dragging': dragging, 'drop-zone--error': videoError }"
     @dragenter.prevent="onDragEnter"
     @dragover.prevent="onDragOver"
     @dragleave="onDragLeave"
     @drop.prevent="onDrop">
         <div class="drop-zone__content">
-            <p class="drop-zone__prompt">{{ t('dropPrompt') }}</p>
+            <p
+            class="drop-zone__prompt"
+            :class="{ 'drop-zone__prompt--error': videoError }"
+            :role="videoError ? 'alert' : undefined"
+            :aria-live="videoError ? 'assertive' : undefined">
+                {{ t(dropPromptKey) }}
+            </p>
             <label class="drop-zone__select">
                 <input
                 class="drop-zone__input"
                 type="file"
                 multiple
-                accept="video/*"
+                :accept="videoFileAccept"
                 :aria-label="t('selectFiles')"
                 @change="onFileInputChange" />
                 <span class="drop-zone__select-inner">
@@ -44,17 +50,18 @@
             <video
             ref="videoRef"
             class="player-wrapper__video"
-            :src="videoUrl"
+            :src="activeVideoUrl ?? undefined"
             autoplay
             :style="hdrStyle"
             @timeupdate="onTimeUpdate"
             @durationchange="onDurationChange"
-            @loadedmetadata="onLoadedMetadata"
+            @loadedmetadata="onVideoLoadedMetadata"
             @volumechange="onVolumeChange"
             @seeked="onSeeked"
             @play="onPlay"
             @pause="onPause"
             @progress="updateBuffered"
+            @error="onVideoError"
             @ended="playlist.playNext"></video>
             <div v-if="dragging" class="player-wrapper__drop-overlay">
                 <p>{{ t('dropOverlay') }}</p>
@@ -125,7 +132,7 @@
     :items="playlist.items"
     :current-index="playlist.currentIndex"
     :sort-key="playlist.sortKey"
-    :visible="controlsVisible"
+    :visible="chromeVisible"
     @toggle="playlistOpen = !playlistOpen"
     @close="playlistOpen = false"
     @select="playlist.setCurrent"
@@ -134,7 +141,7 @@
     @sort="playlist.sort"
     @add-files="playlist.addFilesAndPlay"
     @move-item="playlist.moveItem" />
-    <div class="app-tools" :class="{ 'app-tools--visible': toolsVisible }">
+    <div class="app-tools" :class="{ 'app-tools--visible': chromeVisible }">
         <button
         class="shortcut-help-toggle"
         :class="{ 'shortcut-help-toggle--active': shortcutHelpOpen }"
@@ -149,8 +156,8 @@
                 fill="currentColor" />
             </svg>
         </button>
-        <LanguageSwitcher :visible="toolsVisible" />
-        <ThemeSwitcher :visible="toolsVisible" />
+        <LanguageSwitcher :visible="chromeVisible" />
+        <ThemeSwitcher :visible="chromeVisible" />
     </div>
 </template>
 
@@ -166,7 +173,7 @@ import { useI18n, type MessageKey } from './composables/useI18n';
 import { usePlayerShortcuts } from './composables/usePlayerShortcuts';
 import { useSystemPlaybackControls } from './composables/useSystemPlaybackControls';
 import { playbackSpeeds, useVideoPlayer } from './composables/useVideoPlayer';
-import { usePlaylistStore } from './stores/playlist';
+import { usePlaylistStore, videoFileAccept } from './stores/playlist';
 
 const playlist = usePlaylistStore();
 const playlistOpen = ref(false);
@@ -196,9 +203,15 @@ const shortcutRows: ShortcutRow[] = [
 
 const videoRef = ref<HTMLVideoElement | null>(null);
 const playerContainerRef = ref<HTMLElement | null>(null);
+const videoError = ref(false);
 
 const videoUrl = computed(() => playlist.currentItem?.url ?? null);
+const activeVideoUrl = computed(() => (videoError.value ? null : videoUrl.value));
 const videoFileName = computed(() => playlist.currentItem?.name ?? '');
+const showDropZone = computed(() => videoUrl.value === null || videoError.value);
+const dropPromptKey = computed<MessageKey>(() =>
+    videoError.value ? 'videoCodecUnsupported' : 'dropPrompt',
+);
 
 const {
     buffered,
@@ -245,7 +258,9 @@ const { dragging, onDragEnter, onDragLeave, onDragOver, onDrop } = useDropFiles(
     playlist.addFilesAndPlay,
 );
 const { controlsVisible, resetHideTimer } = useControlsVisibility(playing);
-const toolsVisible = computed(() => !videoUrl.value || controlsVisible.value || shortcutHelpOpen.value);
+const chromeVisible = computed(
+    () => showDropZone.value || controlsVisible.value || shortcutHelpOpen.value,
+);
 
 const closeShortcutHelp = () => {
     shortcutHelpOpen.value = false;
@@ -253,6 +268,22 @@ const closeShortcutHelp = () => {
 
 const toggleShortcutHelp = () => {
     shortcutHelpOpen.value = !shortcutHelpOpen.value;
+};
+
+const onVideoLoadedMetadata = () => {
+    videoError.value = false;
+    onLoadedMetadata();
+};
+
+const onVideoError = () => {
+    const failedItemId = playlist.currentItem?.id ?? null;
+
+    videoError.value = true;
+    playlistOpen.value = false;
+    closeShortcutHelp();
+    resetPlaybackState();
+
+    if (failedItemId) playlist.removeRejected(failedItemId);
 };
 
 const onFileInputChange = (event: Event) => {
@@ -290,7 +321,7 @@ usePlayerShortcuts({
     play,
     playNext: playlist.playNext,
     playPrev: playlist.playPrev,
-    playerEnabled: computed(() => videoUrl.value !== null),
+    playerEnabled: computed(() => activeVideoUrl.value !== null),
     resetHideTimer,
     seekBy,
     shortcutHelpOpen,
@@ -313,10 +344,11 @@ useSystemPlaybackControls({
     seekBy,
     speed,
     title: videoFileName,
-    videoUrl,
+    videoUrl: activeVideoUrl,
 });
 
-watch(videoUrl, () => {
+watch(videoUrl, (url) => {
+    if (url !== null) videoError.value = false;
     resetPlaybackState();
     closeShortcutHelp();
 });
@@ -615,6 +647,11 @@ body {
         color: var(--color-accent-strong);
     }
 
+    &--error {
+        border-color: var(--color-danger);
+        color: var(--color-danger);
+    }
+
     &__content {
         display: flex;
         flex-direction: column;
@@ -633,6 +670,10 @@ body {
         margin: 0;
         line-height: 1.5;
         overflow-wrap: anywhere;
+
+        &--error {
+            font-weight: 700;
+        }
     }
 
     &__select {
@@ -744,6 +785,7 @@ body {
         pointer-events: none;
         user-select: none;
     }
+
 }
 
 @media (max-width: 560px) {

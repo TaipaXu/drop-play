@@ -3,6 +3,9 @@
 ## Unreleased
 
 - Add a local file picker entry on the first screen for touch and accessibility-friendly video selection.
+- Show a localized unsupported codec error in the drop zone and keep recovery actions available.
+- Remove files from the playlist when browser playback reports them as unsupported.
+- Align file picker video extensions with playlist filtering, including Ogg and other common containers.
 
 ## 0.3.0 - 2026-06-25
 

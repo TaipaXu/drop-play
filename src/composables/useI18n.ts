@@ -60,6 +60,7 @@ const messages = {
         themeSystemShort: '系统',
         themeTitle: '切换主题',
         unmute: '取消静音',
+        videoCodecUnsupported: '浏览器不支持此视频编码',
         volume: '音量',
     },
     'en-US': {
@@ -116,6 +117,7 @@ const messages = {
         themeSystemShort: 'System',
         themeTitle: 'Switch theme',
         unmute: 'Unmute',
+        videoCodecUnsupported: 'This browser does not support this video codec.',
         volume: 'Volume',
     },
 } as const;
