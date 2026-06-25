@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add custom playback speed input with a 0.1x to 10x supported range.
 - Close the playback speed menu when clicking outside it or when player controls hide.
 - Keep the selected playback speed applied when dropping or switching to another video.
 - Keep progress and time display stable while seeking so the controls no longer flicker back to the previous position.

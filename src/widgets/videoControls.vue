@@ -87,10 +87,27 @@
                     :title="t('speed')"
                     :aria-label="t('speed')"
                     :aria-expanded="showSpeed"
-                    @click="showSpeed = !showSpeed">
-                        {{ speed === 1 ? t('speed') : speed + 'x' }}
+                    @click="toggleSpeedMenu">
+                        {{ speedLabel }}
                     </button>
                     <div v-if="showSpeed" class="controls__speed-menu">
+                        <label class="controls__speed-custom">
+                            <span class="controls__speed-input-wrap">
+                                <input
+                                type="number"
+                                class="controls__speed-input"
+                                :value="customSpeedInput"
+                                :min="playbackSpeedMin"
+                                :max="playbackSpeedMax"
+                                step="0.1"
+                                inputmode="decimal"
+                                :aria-label="t('speedCustomInput')"
+                                @input="onCustomSpeedInput"
+                                @change="commitCustomSpeedInput"
+                                @keydown.enter.prevent="commitCustomSpeedInput" />
+                                <span class="controls__speed-input-suffix">x</span>
+                            </span>
+                        </label>
                         <button
                         v-for="s in speeds"
                         :key="s"
@@ -159,10 +176,14 @@
 </template>
 
 <script setup vapor lang="ts">
-import { onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue';
 import { useI18n } from '../composables/useI18n';
 import { useProgressPreview } from '../composables/useProgressPreview';
-import { playbackSpeeds } from '../composables/useVideoPlayer';
+import {
+    playbackSpeedMax,
+    playbackSpeedMin,
+    playbackSpeeds,
+} from '../composables/useVideoPlayer';
 
 const props = defineProps<{
     playing: boolean;
@@ -180,6 +201,7 @@ const props = defineProps<{
 
 const speeds = playbackSpeeds;
 const showSpeed = ref(false);
+const customSpeedInput = ref('');
 const speedWrapRef = ref<HTMLElement | null>(null);
 const { t } = useI18n();
 
@@ -219,6 +241,41 @@ const formatTime = (s: number) => {
     return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 };
 
+const formatSpeedValue = (value: number) => (Number.isFinite(value) ? `${value}` : '1');
+
+const speedLabel = computed(() => (props.speed === 1 ? t('speed') : `${formatSpeedValue(props.speed)}x`));
+
+const syncCustomSpeedInput = () => {
+    customSpeedInput.value = formatSpeedValue(props.speed);
+};
+
+const toggleSpeedMenu = () => {
+    showSpeed.value = !showSpeed.value;
+    if (showSpeed.value) syncCustomSpeedInput();
+};
+
+const onCustomSpeedInput = (event: Event) => {
+    customSpeedInput.value = (event.target as HTMLInputElement).value;
+};
+
+const commitCustomSpeedInput = () => {
+    const inputValue = customSpeedInput.value.trim();
+    if (!inputValue) {
+        syncCustomSpeedInput();
+        return;
+    }
+
+    const nextSpeed = Number(inputValue);
+    if (!Number.isFinite(nextSpeed)) {
+        syncCustomSpeedInput();
+        return;
+    }
+
+    const clampedSpeed = Math.max(playbackSpeedMin, Math.min(playbackSpeedMax, nextSpeed));
+    customSpeedInput.value = formatSpeedValue(clampedSpeed);
+    emit('updateSpeed', clampedSpeed);
+};
+
 const onVolumeWheel = (e: WheelEvent) => {
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
     const newVolume = Math.max(0, Math.min(1, props.volume + delta));
@@ -231,6 +288,7 @@ const closeSpeedMenuOnOutsidePointerDown = (event: PointerEvent) => {
     const speedWrap = speedWrapRef.value;
     if (speedWrap && event.composedPath().includes(speedWrap)) return;
 
+    commitCustomSpeedInput();
     showSpeed.value = false;
 };
 
@@ -246,6 +304,13 @@ watch(
     () => props.visible,
     (visible) => {
         if (!visible) showSpeed.value = false;
+    },
+);
+
+watch(
+    () => props.speed,
+    () => {
+        if (showSpeed.value) syncCustomSpeedInput();
     },
 );
 </script>
@@ -477,7 +542,47 @@ watch(
         margin-bottom: 8px;
         display: flex;
         flex-direction: column;
-        min-width: 72px;
+        min-width: 124px;
+    }
+
+    &__speed-custom {
+        display: flex;
+        justify-content: center;
+        padding: 4px 10px 6px;
+    }
+
+    &__speed-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 88px;
+    }
+
+    &__speed-input {
+        box-sizing: border-box;
+        width: 100%;
+        height: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.26);
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        font-family: inherit;
+        font-size: 13px;
+        text-align: center;
+        padding: 0 20px;
+        outline: none;
+
+        &:focus {
+            border-color: #00a1d6;
+        }
+    }
+
+    &__speed-input-suffix {
+        position: absolute;
+        right: 8px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 12px;
+        pointer-events: none;
     }
 
     &__speed-option {

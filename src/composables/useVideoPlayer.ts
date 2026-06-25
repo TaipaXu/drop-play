@@ -6,6 +6,8 @@ const seekCompletionTolerance = 0.5;
 const pendingSeekTimeout = 3000;
 
 export const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
+export const playbackSpeedMin = 0.1;
+export const playbackSpeedMax = 10;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
@@ -196,9 +198,10 @@ export const useVideoPlayer = ({
     const setSpeed = (value: number) => {
         if (!Number.isFinite(value)) return;
 
-        speed.value = value;
+        const nextSpeed = clamp(value, playbackSpeedMin, playbackSpeedMax);
+        speed.value = nextSpeed;
         const video = videoRef.value;
-        if (video) syncPlaybackSpeed(video, value);
+        if (video) syncPlaybackSpeed(video, nextSpeed);
     };
 
     const seek = (time: number) => {
