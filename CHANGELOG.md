@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Keep the expanded playlist above the top toolbar so it is not covered by app controls.
 - Keep top toolbar language and theme menus touch-friendly and close them on outside clicks or taps.
 - Add a local file picker entry on the first screen for touch and accessibility-friendly video selection.
 - Show a localized unsupported codec error in the drop zone and keep recovery actions available.

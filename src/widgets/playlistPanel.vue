@@ -237,7 +237,7 @@ const onDrop = (e: DragEvent) => {
     background: var(--color-panel-bg);
     backdrop-filter: blur(12px);
     border-left: 1px solid var(--color-panel-border);
-    z-index: 90;
+    z-index: 120;
     display: flex;
     flex-direction: column;
     transform: translateX(100%);
