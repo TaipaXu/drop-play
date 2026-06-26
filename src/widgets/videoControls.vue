@@ -4,9 +4,21 @@
         <div
         class="controls__progress-bar"
         :class="{ 'controls__progress-bar--dragging': dragging }"
-        @mousedown="onProgressMouseDown"
-        @mousemove="onProgressHover"
-        @mouseleave="onProgressLeave"
+        role="slider"
+        :tabindex="hasSeekableDuration ? 0 : -1"
+        :aria-label="t('progress')"
+        :aria-valuemin="0"
+        :aria-valuemax="progressValueMax"
+        :aria-valuenow="progressValueNow"
+        :aria-valuetext="progressValueText"
+        :aria-disabled="!hasSeekableDuration"
+        @blur="onProgressBlur"
+        @focus="onProgressFocus"
+        @keydown="onProgressKeydown"
+        @pointercancel="onProgressPointerCancel"
+        @pointerdown="onProgressPointerDown"
+        @pointerleave="onProgressPointerLeave"
+        @pointermove="onProgressPointerMove"
         ref="progressBarRef">
             <div class="controls__progress-bg"></div>
             <div class="controls__progress-buffered" :style="{ width: buffered + '%' }"></div>
@@ -219,12 +231,18 @@ const emit = defineEmits<{
 const {
     dragging,
     drawThumbnail,
+    hasSeekableDuration,
     hoverPercent,
     hoverTime,
-    onProgressHover,
-    onProgressLeave,
-    onProgressMouseDown,
+    onProgressBlur,
+    onProgressFocus,
+    onProgressKeydown,
+    onProgressPointerCancel,
+    onProgressPointerDown,
+    onProgressPointerLeave,
+    onProgressPointerMove,
     playedPercent,
+    playedTime,
     previewVideoRef,
     progressBarRef,
     thumbnailRef,
@@ -240,6 +258,12 @@ const formatTime = (s: number) => {
     const sec = Math.floor(s % 60);
     return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 };
+
+const progressValueMax = computed(() => Math.max(0, Math.round(props.duration)));
+const progressValueNow = computed(() => Math.round(playedTime.value));
+const progressValueText = computed(
+    () => `${formatTime(playedTime.value)} / ${formatTime(props.duration)}`,
+);
 
 const formatSpeedValue = (value: number) => (Number.isFinite(value) ? `${value}` : '1');
 
@@ -339,6 +363,8 @@ watch(
         height: 4px;
         cursor: pointer;
         margin: 0 12px;
+        outline: none;
+        touch-action: none;
         transition: height 0.15s;
 
         &::before {
@@ -350,15 +376,22 @@ watch(
             bottom: -10px;
         }
 
+        &:focus-visible,
         &:hover,
         &--dragging {
             height: 8px;
+        }
+
+        &:focus-visible {
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
+            border-radius: 4px;
         }
 
         &--dragging {
             user-select: none;
         }
 
+        &:focus-visible .controls__progress-thumb,
         &:hover .controls__progress-thumb,
         &--dragging .controls__progress-thumb {
             transform: translate(-50%, -50%) scale(1);

@@ -4,7 +4,9 @@ const isEditableTarget = (target: EventTarget | null) => {
     if (!(target instanceof HTMLElement)) return false;
     if (target.isContentEditable) return true;
 
-    return !!target.closest('input, textarea, select, button, [contenteditable="true"]');
+    return !!target.closest(
+        'input, textarea, select, button, [role="slider"], [contenteditable="true"]',
+    );
 };
 
 export interface PlayerShortcutsOptions {

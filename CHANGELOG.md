@@ -6,6 +6,8 @@
 - Show a localized unsupported codec error in the drop zone and keep recovery actions available.
 - Remove files from the playlist when browser playback reports them as unsupported.
 - Align file picker video extensions with playlist filtering, including Ogg and other common containers.
+- Add touch and pen-friendly progress seeking with Pointer Events.
+- Expose the progress bar as a keyboard-operable slider with localized screen reader text.
 
 ## 0.3.0 - 2026-06-25
 
