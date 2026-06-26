@@ -789,6 +789,12 @@ body {
 }
 
 @media (max-width: 560px) {
+    .app-tools {
+        top: 12px;
+        left: 12px;
+        max-width: calc(100vw - 24px);
+    }
+
     .drop-zone__prompt {
         max-width: 280px;
     }

@@ -1,5 +1,5 @@
 <template>
-    <div class="language-switcher">
+    <div ref="switcherRef" class="language-switcher" @keydown.escape.stop.prevent="open = false">
         <button
         class="language-switcher__button"
         type="button"
@@ -33,7 +33,7 @@
 </template>
 
 <script setup vapor lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n, type LanguagePreference } from '../composables/useI18n';
 
 const props = defineProps<{
@@ -41,6 +41,7 @@ const props = defineProps<{
 }>();
 
 const open = ref(false);
+const switcherRef = ref<HTMLElement | null>(null);
 const { languagePreference, locale, setLanguagePreference, systemLocale, t } = useI18n();
 
 const activeLabel = computed(() => {
@@ -62,6 +63,23 @@ const selectLanguage = (value: LanguagePreference) => {
     setLanguagePreference(value);
     open.value = false;
 };
+
+const closeOnOutsidePointerDown = (event: PointerEvent) => {
+    if (!open.value) return;
+
+    const switcher = switcherRef.value;
+    if (switcher && event.composedPath().includes(switcher)) return;
+
+    open.value = false;
+};
+
+onMounted(() => {
+    document.addEventListener('pointerdown', closeOnOutsidePointerDown);
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('pointerdown', closeOnOutsidePointerDown);
+});
 
 watch(
     () => props.visible,
@@ -107,6 +125,7 @@ watch(
         top: calc(100% + 8px);
         left: 0;
         min-width: 140px;
+        max-width: calc(100vw - 24px);
         padding: 4px 0;
         border: 1px solid var(--color-floating-border);
         border-radius: 8px;
@@ -135,6 +154,20 @@ watch(
 
         &--active {
             color: var(--color-accent);
+        }
+    }
+}
+
+@media (max-width: 560px) {
+    .language-switcher {
+        &__button {
+            min-width: 64px;
+            padding: 0 8px;
+        }
+
+        &__option {
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
     }
 }

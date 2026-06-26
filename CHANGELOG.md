@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Keep top toolbar language and theme menus touch-friendly and close them on outside clicks or taps.
 - Add a local file picker entry on the first screen for touch and accessibility-friendly video selection.
 - Show a localized unsupported codec error in the drop zone and keep recovery actions available.
 - Remove files from the playlist when browser playback reports them as unsupported.
