@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Clean up global language and theme system listeners during HMR and explicit disposal.
 - Keep the expanded playlist above the top toolbar so it is not covered by app controls.
 - Keep top toolbar language and theme menus touch-friendly and close them on outside clicks or taps.
 - Add a local file picker entry on the first screen for touch and accessibility-friendly video selection.

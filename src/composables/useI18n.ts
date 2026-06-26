@@ -167,19 +167,53 @@ const setLanguagePreference = (value: LanguagePreference) => {
 
 const t = (key: MessageKey) => messages[locale.value][key];
 
-watch(languagePreference, writeStoredPreference);
-watch(locale, syncDocumentLanguage, { immediate: true });
+let disposeI18nEffects: (() => void) | undefined;
 
-if (typeof window !== 'undefined') {
-    window.addEventListener('languagechange', () => {
+const setupI18nEffects = () => {
+    if (disposeI18nEffects) return;
+
+    systemLocale.value = getSystemLocale();
+
+    const stopPreferenceWatch = watch(languagePreference, writeStoredPreference);
+    const stopLocaleWatch = watch(locale, syncDocumentLanguage, { immediate: true });
+    const updateSystemLocale = () => {
         systemLocale.value = getSystemLocale();
-    });
+    };
+
+    if (typeof window !== 'undefined') {
+        window.addEventListener('languagechange', updateSystemLocale);
+    }
+
+    disposeI18nEffects = () => {
+        stopPreferenceWatch();
+        stopLocaleWatch();
+
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('languagechange', updateSystemLocale);
+        }
+
+        disposeI18nEffects = undefined;
+    };
+};
+
+export const disposeI18n = () => {
+    disposeI18nEffects?.();
+};
+
+setupI18nEffects();
+
+if (import.meta.hot) {
+    import.meta.hot.dispose(disposeI18n);
 }
 
-export const useI18n = () => ({
-    languagePreference: readonly(languagePreference),
-    locale,
-    setLanguagePreference,
-    systemLocale: readonly(systemLocale),
-    t,
-});
+export const useI18n = () => {
+    setupI18nEffects();
+
+    return {
+        languagePreference: readonly(languagePreference),
+        locale,
+        setLanguagePreference,
+        systemLocale: readonly(systemLocale),
+        t,
+    };
+};

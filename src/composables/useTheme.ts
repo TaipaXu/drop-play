@@ -44,25 +44,64 @@ const setThemePreference = (value: ThemePreference) => {
     themePreference.value = value;
 };
 
-watch(themePreference, writeStoredPreference);
-watch(theme, syncDocumentTheme, { immediate: true });
+let disposeThemeEffects: (() => void) | undefined;
 
-if (typeof window !== 'undefined' && typeof window.matchMedia !== 'undefined') {
-    const media = window.matchMedia(darkSchemeQuery);
+const setupThemeEffects = () => {
+    if (disposeThemeEffects) return;
+
+    systemTheme.value = getSystemTheme();
+
+    const stopPreferenceWatch = watch(themePreference, writeStoredPreference);
+    const stopThemeWatch = watch(theme, syncDocumentTheme, { immediate: true });
+    const media =
+        typeof window !== 'undefined' && typeof window.matchMedia !== 'undefined'
+            ? window.matchMedia(darkSchemeQuery)
+            : undefined;
     const updateSystemTheme = (event: MediaQueryListEvent) => {
         systemTheme.value = event.matches ? 'dark' : 'light';
     };
 
-    if (typeof media.addEventListener === 'function') {
-        media.addEventListener('change', updateSystemTheme);
-    } else {
-        media.addListener(updateSystemTheme);
+    if (media) {
+        if (typeof media.addEventListener === 'function') {
+            media.addEventListener('change', updateSystemTheme);
+        } else {
+            media.addListener(updateSystemTheme);
+        }
     }
+
+    disposeThemeEffects = () => {
+        stopPreferenceWatch();
+        stopThemeWatch();
+
+        if (media) {
+            if (typeof media.removeEventListener === 'function') {
+                media.removeEventListener('change', updateSystemTheme);
+            } else {
+                media.removeListener(updateSystemTheme);
+            }
+        }
+
+        disposeThemeEffects = undefined;
+    };
+};
+
+export const disposeTheme = () => {
+    disposeThemeEffects?.();
+};
+
+setupThemeEffects();
+
+if (import.meta.hot) {
+    import.meta.hot.dispose(disposeTheme);
 }
 
-export const useTheme = () => ({
-    setThemePreference,
-    systemTheme: readonly(systemTheme),
-    theme,
-    themePreference: readonly(themePreference),
-});
+export const useTheme = () => {
+    setupThemeEffects();
+
+    return {
+        setThemePreference,
+        systemTheme: readonly(systemTheme),
+        theme,
+        themePreference: readonly(themePreference),
+    };
+};
