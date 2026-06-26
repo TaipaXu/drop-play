@@ -1,5 +1,7 @@
 import { computed, readonly, ref, watch } from 'vue';
 
+import { safeLocalStorage } from './safeStorage';
+
 export type Theme = 'light' | 'dark';
 export type ThemePreference = 'system' | Theme;
 
@@ -16,17 +18,13 @@ const getSystemTheme = (): Theme => {
 };
 
 const readStoredPreference = (): ThemePreference => {
-    if (typeof localStorage === 'undefined') return 'system';
-
-    const stored = localStorage.getItem(themeStorageKey);
+    const stored = safeLocalStorage.getItem(themeStorageKey);
 
     return isThemePreference(stored) ? stored : 'system';
 };
 
 const writeStoredPreference = (value: ThemePreference) => {
-    if (typeof localStorage === 'undefined') return;
-
-    localStorage.setItem(themeStorageKey, value);
+    safeLocalStorage.setItem(themeStorageKey, value);
 };
 
 const themePreference = ref<ThemePreference>(readStoredPreference());

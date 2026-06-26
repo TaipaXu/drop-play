@@ -1,5 +1,7 @@
 import { computed, readonly, ref, watch } from 'vue';
 
+import { safeLocalStorage } from './safeStorage';
+
 export type Locale = 'zh-CN' | 'en-US';
 export type LanguagePreference = 'system' | Locale;
 
@@ -138,17 +140,13 @@ const getSystemLocale = (): Locale => {
 };
 
 const readStoredPreference = (): LanguagePreference => {
-    if (typeof localStorage === 'undefined') return 'system';
-
-    const stored = localStorage.getItem(languageStorageKey);
+    const stored = safeLocalStorage.getItem(languageStorageKey);
 
     return isLanguagePreference(stored) ? stored : 'system';
 };
 
 const writeStoredPreference = (value: LanguagePreference) => {
-    if (typeof localStorage === 'undefined') return;
-
-    localStorage.setItem(languageStorageKey, value);
+    safeLocalStorage.setItem(languageStorageKey, value);
 };
 
 const languagePreference = ref<LanguagePreference>(readStoredPreference());

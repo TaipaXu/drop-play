@@ -1,5 +1,7 @@
 import { onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue';
 
+import { safeLocalStorage } from './safeStorage';
+
 const volumeStorageKey = 'player-volume';
 const mutedStorageKey = 'player-muted';
 const seekCompletionTolerance = 0.5;
@@ -12,7 +14,7 @@ export const playbackSpeedMax = 10;
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 const readStoredVolume = () => {
-    const storedVolume = Number(localStorage.getItem(volumeStorageKey) ?? 1);
+    const storedVolume = Number(safeLocalStorage.getItem(volumeStorageKey) ?? 1);
     if (!Number.isFinite(storedVolume)) return 1;
 
     return clamp(storedVolume, 0, 1);
@@ -43,7 +45,7 @@ export const useVideoPlayer = ({
     const currentTime = ref(0);
     const duration = ref(0);
     const volume = ref(readStoredVolume());
-    const muted = ref(localStorage.getItem(mutedStorageKey) === 'true');
+    const muted = ref(safeLocalStorage.getItem(mutedStorageKey) === 'true');
     const speed = ref(1);
     const buffered = ref(0);
     const isFullscreen = ref(false);
@@ -309,8 +311,8 @@ export const useVideoPlayer = ({
         }, 'image/png');
     };
 
-    watch(volume, (value) => localStorage.setItem(volumeStorageKey, String(value)));
-    watch(muted, (value) => localStorage.setItem(mutedStorageKey, String(value)));
+    watch(volume, (value) => safeLocalStorage.setItem(volumeStorageKey, String(value)));
+    watch(muted, (value) => safeLocalStorage.setItem(mutedStorageKey, String(value)));
     watch(videoRef, (video) => {
         if (video) syncVideoSettings(video);
     });

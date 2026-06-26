@@ -10,6 +10,7 @@
 - Align file picker video extensions with playlist filtering, including Ogg and other common containers.
 - Add touch and pen-friendly progress seeking with Pointer Events.
 - Expose the progress bar as a keyboard-operable slider with localized screen reader text.
+- Keep the app running when local storage is unavailable by gracefully skipping persisted preferences.
 
 ## 0.3.0 - 2026-06-25
 
