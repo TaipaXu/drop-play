@@ -6,6 +6,10 @@ Language: English | [中文](./README.zh-CN.md)
 
 Drop Play is a lightweight local video player. Drop or choose video files on the page to start playback, or add multiple files at once to build a playlist. It is designed for local viewing with no uploads, no backend, and minimal setup.
 
+## Preview
+
+![Drop Play interface](./app.png)
+
 ## Features
 
 - Drag and drop or choose video files to play immediately, with multi-file support.
