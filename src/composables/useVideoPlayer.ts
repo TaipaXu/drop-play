@@ -51,6 +51,7 @@ export const useVideoPlayer = ({
     const isFullscreen = ref(false);
     const hdrEnabled = ref(false);
     let clickTimer: ReturnType<typeof setTimeout> | null = null;
+    let playerClickStartedPaused: boolean | null = null;
     let pendingSeekTime: number | null = null;
     let pendingSeekTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -261,11 +262,19 @@ export const useVideoPlayer = ({
     const onPlayerClick = (event: MouseEvent) => {
         if (isControlsClick(event)) return;
 
-        if (clickTimer) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
+        // The browser's double-click interval can be longer than our single-click delay.
+        // Do not queue another playback toggle for the second click, and retain the state
+        // from the first click so dblclick can restore it if the first timer already fired.
+        if (event.detail > 1) {
+            if (clickTimer) {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+            }
+
             return;
         }
+
+        playerClickStartedPaused = videoRef.value?.paused ?? null;
 
         clickTimer = setTimeout(() => {
             clickTimer = null;
@@ -280,6 +289,16 @@ export const useVideoPlayer = ({
             clearTimeout(clickTimer);
             clickTimer = null;
         }
+
+        const video = videoRef.value;
+        if (video && playerClickStartedPaused !== null) {
+            if (playerClickStartedPaused && !video.paused) {
+                video.pause();
+            } else if (!playerClickStartedPaused && video.paused) {
+                void video.play();
+            }
+        }
+        playerClickStartedPaused = null;
 
         toggleFullscreen();
     };
