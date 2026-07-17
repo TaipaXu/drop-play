@@ -25,6 +25,7 @@
             class="language-switcher__option"
             :class="{ 'language-switcher__option--active': languagePreference === option.value }"
             type="button"
+            :aria-pressed="languagePreference === option.value"
             @click="selectLanguage(option.value)">
                 {{ option.label }}
             </button>
@@ -118,6 +119,11 @@ watch(
             border-color: var(--color-floating-border-hover);
             box-shadow: var(--shadow-floating-hover);
         }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
     }
 
     &__menu {
@@ -153,7 +159,8 @@ watch(
         }
 
         &--active {
-            color: var(--color-accent);
+            color: var(--color-accent-text);
+            font-weight: 600;
         }
     }
 }

@@ -39,7 +39,8 @@
                     type="button"
                     @click="showSort = !showSort"
                     :title="t('sort')"
-                    :aria-label="t('sort')">
+                    :aria-label="t('sort')"
+                    :aria-expanded="showSort">
                         <svg viewBox="0 0 24 24" width="18" height="18">
                             <path
                             d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"
@@ -53,6 +54,7 @@
                         class="playlist__sort-option"
                         type="button"
                         :class="{ 'playlist__sort-option--active': sortKey === opt.key }"
+                        :aria-pressed="sortKey === opt.key"
                         @click="
                             $emit('sort', opt.key);
                             showSort = false;
@@ -126,7 +128,13 @@
                 type="button"
                 :aria-current="index === currentIndex ? 'true' : undefined"
                 @click="$emit('select', item.id)">
-                    <span class="playlist__index">{{ index + 1 }}</span>
+                    <span class="playlist__index">
+                        <span
+                        v-if="index === currentIndex"
+                        class="playlist__current-marker"
+                        aria-hidden="true">▶</span>
+                        <span v-else>{{ index + 1 }}</span>
+                    </span>
                     <span class="playlist__name" :title="item.name">{{ item.name }}</span>
                 </button>
                 <div class="playlist__item-actions">
@@ -419,7 +427,7 @@ const onDrop = (e: DragEvent) => {
         &:focus-within {
             background: var(--color-panel-hover);
             color: var(--color-panel-text);
-            outline: 2px solid var(--color-accent-strong);
+            outline: 2px solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -464,7 +472,8 @@ const onDrop = (e: DragEvent) => {
         }
 
         &--active {
-            color: var(--color-accent);
+            color: var(--color-accent-text);
+            font-weight: 600;
         }
     }
 
@@ -515,15 +524,17 @@ const onDrop = (e: DragEvent) => {
 
         &--active {
             background: var(--color-panel-active-bg);
-            color: var(--color-accent);
+            color: var(--color-accent-text);
+            box-shadow: inset 3px 0 var(--color-accent-fill);
+            font-weight: 600;
 
             .playlist__index {
-                color: var(--color-accent);
+                color: var(--color-accent-text);
             }
         }
 
         &--drag-over {
-            box-shadow: inset 0 2px var(--color-accent);
+            box-shadow: inset 0 2px var(--color-accent-fill);
         }
     }
 
@@ -542,7 +553,7 @@ const onDrop = (e: DragEvent) => {
         text-align: left;
 
         &:focus-visible {
-            outline: 2px solid var(--color-accent-strong);
+            outline: 2px solid var(--color-focus-ring);
             outline-offset: -2px;
         }
     }
@@ -554,6 +565,10 @@ const onDrop = (e: DragEvent) => {
         font-size: 12px;
         color: var(--color-panel-faint);
         font-variant-numeric: tabular-nums;
+    }
+
+    &__current-marker {
+        font-size: 10px;
     }
 
     &__name {
@@ -602,7 +617,7 @@ const onDrop = (e: DragEvent) => {
         }
 
         &:focus-visible {
-            outline: 2px solid var(--color-accent-strong);
+            outline: 2px solid var(--color-focus-ring);
             outline-offset: 1px;
         }
 

@@ -68,6 +68,7 @@
             class="theme-switcher__option"
             :class="{ 'theme-switcher__option--active': themePreference === option.value }"
             type="button"
+            :aria-pressed="themePreference === option.value"
             @click="selectTheme(option.value)">
                 {{ option.label }}
             </button>
@@ -163,6 +164,11 @@ watch(
             border-color: var(--color-floating-border-hover);
             box-shadow: var(--shadow-floating-hover);
         }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
     }
 
     &__menu {
@@ -198,7 +204,8 @@ watch(
         }
 
         &--active {
-            color: var(--color-accent);
+            color: var(--color-accent-text);
+            font-weight: 600;
         }
     }
 }

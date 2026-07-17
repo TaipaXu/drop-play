@@ -146,7 +146,9 @@
                                 v-for="s in speeds"
                                 :key="s"
                                 class="controls__speed-option"
+                                type="button"
                                 :class="{ 'controls__speed-option--active': speed === s }"
+                                :aria-pressed="speed === s"
                                 @click="selectSpeed(s)">
                                     {{ s }}x
                                 </button>
@@ -173,6 +175,7 @@
                         :class="{ 'controls__btn--active': hdrEnabled }"
                         :title="t('hdr')"
                         :aria-label="t('hdr')"
+                        :aria-pressed="hdrEnabled"
                         @click="toggleHdr">
                             {{ t('hdr') }}
                         </button>
@@ -466,7 +469,7 @@ watch(
         top: 0;
         left: 0;
         height: 100%;
-        background: #00a1d6;
+        background: var(--color-accent-fill);
         border-radius: 4px;
     }
 
@@ -475,7 +478,7 @@ watch(
         top: 50%;
         width: 14px;
         height: 14px;
-        background: #00a1d6;
+        background: var(--color-accent-fill);
         border-radius: 50%;
         transform: translate(-50%, -50%) scale(0);
         transition: transform 0.15s;
@@ -574,6 +577,8 @@ watch(
         &--active {
             opacity: 1;
             color: #f0c040;
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
     }
 
@@ -613,7 +618,7 @@ watch(
     &__volume-slider {
         width: 60px;
         height: 3px;
-        accent-color: #00a1d6;
+        accent-color: var(--color-accent-fill);
         cursor: pointer;
         margin: 0;
     }
@@ -665,7 +670,8 @@ watch(
         outline: none;
 
         &:focus {
-            border-color: #00a1d6;
+            border-color: var(--color-focus-ring);
+            box-shadow: 0 0 0 1px var(--color-focus-ring);
         }
     }
 
@@ -692,7 +698,8 @@ watch(
         }
 
         &--active {
-            color: #00a1d6;
+            color: var(--color-accent-on-player);
+            font-weight: 600;
         }
     }
 }

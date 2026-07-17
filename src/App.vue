@@ -497,8 +497,10 @@ onBeforeUnmount(() => {
 :root,
 :root[data-theme='light'] {
     color-scheme: light;
-    --color-accent: #00a1d6;
-    --color-accent-strong: #409eff;
+    --color-accent-fill: #00a1d6;
+    --color-accent-text: #006987;
+    --color-accent-on-player: #38c6f3;
+    --color-focus-ring: #006382;
     --color-app-bg: #f6f8fb;
     --color-drop-border: #9aa7b5;
     --color-drop-text: #4b5563;
@@ -526,6 +528,8 @@ onBeforeUnmount(() => {
 
 :root[data-theme='dark'] {
     color-scheme: dark;
+    --color-accent-text: #52c7ed;
+    --color-focus-ring: #5acdf3;
     --color-app-bg: #0f1117;
     --color-drop-border: #4a5568;
     --color-drop-text: rgba(255, 255, 255, 0.64);
@@ -554,6 +558,8 @@ onBeforeUnmount(() => {
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
         color-scheme: dark;
+        --color-accent-text: #52c7ed;
+        --color-focus-ring: #5acdf3;
         --color-app-bg: #0f1117;
         --color-drop-border: #4a5568;
         --color-drop-text: rgba(255, 255, 255, 0.64);
@@ -643,8 +649,13 @@ body {
     }
 
     &--active {
-        border-color: var(--color-accent);
-        color: var(--color-accent);
+        border-color: var(--color-accent-text);
+        color: var(--color-accent-text);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: 2px;
     }
 }
 
@@ -786,8 +797,8 @@ body {
     user-select: none;
 
     &--dragging {
-        border-color: var(--color-accent-strong);
-        color: var(--color-accent-strong);
+        border-color: var(--color-accent-text);
+        color: var(--color-accent-text);
     }
 
     &--error {
@@ -857,11 +868,11 @@ body {
         background: var(--color-floating-bg-hover);
         border-color: var(--color-floating-border-hover);
         box-shadow: var(--shadow-floating-hover);
-        color: var(--color-accent);
+        color: var(--color-accent-text);
     }
 
     &__select:focus-within &__select-inner {
-        outline: 2px solid var(--color-accent-strong);
+        outline: 2px solid var(--color-focus-ring);
         outline-offset: 2px;
     }
 
@@ -898,7 +909,7 @@ body {
     pointer-events: none;
 
     &--warning {
-        border-color: var(--color-accent-strong);
+        border-color: var(--color-accent-text);
     }
 
     &--error {
@@ -918,7 +929,7 @@ body {
     background: var(--color-player-bg);
 
     &--dragging {
-        outline: 3px dashed var(--color-accent-strong);
+        outline: 3px dashed var(--color-accent-fill);
         outline-offset: -3px;
     }
 
@@ -954,7 +965,7 @@ body {
         align-items: center;
         justify-content: center;
         background: rgba(0, 0, 0, 0.6);
-        color: var(--color-accent-strong);
+        color: var(--color-accent-on-player);
         font-size: 1.25rem;
         z-index: 10;
         pointer-events: none;
