@@ -58,15 +58,19 @@ export const useSystemPlaybackControls = ({
     videoUrl,
 }: SystemPlaybackControlsOptions) => {
     let wakeLock: WakeLockSentinel | null = null;
-    let wakeLockRequest: Promise<void> | null = null;
-    let wakeLockRequestId = 0;
+    let wakeLockReconcile: Promise<void> | null = null;
+    let wakeLockSyncPending = false;
+    let wakeLockActive = false;
 
     const hasMediaSession = () => typeof navigator !== 'undefined' && 'mediaSession' in navigator;
 
     const hasWakeLock = () => typeof navigator !== 'undefined' && 'wakeLock' in navigator;
 
     const shouldHoldWakeLock = () =>
-        videoUrl.value !== null && playing.value && document.visibilityState === 'visible';
+        wakeLockActive &&
+        videoUrl.value !== null &&
+        playing.value &&
+        document.visibilityState === 'visible';
 
     const syncMediaMetadata = () => {
         if (!hasMediaSession()) return;
@@ -171,16 +175,10 @@ export const useSystemPlaybackControls = ({
 
         lock.removeEventListener('release', onWakeLockRelease);
         wakeLock = null;
+        syncWakeLock();
     };
 
-    const releaseWakeLock = async () => {
-        wakeLockRequestId += 1;
-
-        const lock = wakeLock;
-        wakeLock = null;
-
-        if (!lock) return;
-
+    const releaseWakeLock = async (lock: WakeLockSentinel) => {
         lock.removeEventListener('release', onWakeLockRelease);
 
         if (lock.released) return;
@@ -192,38 +190,50 @@ export const useSystemPlaybackControls = ({
         }
     };
 
-    const requestWakeLock = () => {
-        if (!hasWakeLock() || wakeLock || wakeLockRequest || !shouldHoldWakeLock()) return;
+    const reconcileWakeLock = async () => {
+        while (wakeLockSyncPending) {
+            wakeLockSyncPending = false;
 
-        const requestId = ++wakeLockRequestId;
+            if (!hasWakeLock() || !shouldHoldWakeLock()) {
+                const lock = wakeLock;
+                wakeLock = null;
+                if (lock) await releaseWakeLock(lock);
+                continue;
+            }
 
-        wakeLockRequest = navigator.wakeLock
-            .request('screen')
-            .then(async (lock) => {
-                if (requestId !== wakeLockRequestId || !shouldHoldWakeLock()) {
-                    await lock.release();
-                    return;
+            if (wakeLock && !wakeLock.released) continue;
+
+            if (wakeLock) {
+                wakeLock.removeEventListener('release', onWakeLockRelease);
+                wakeLock = null;
+            }
+
+            try {
+                const lock = await navigator.wakeLock.request('screen');
+
+                if (!shouldHoldWakeLock()) {
+                    await releaseWakeLock(lock);
+                    continue;
                 }
 
                 wakeLock = lock;
                 lock.addEventListener('release', onWakeLockRelease);
-            })
-            .catch(() => {
+            } catch {
                 // Browsers can deny Wake Lock due to permissions, power state, or visibility.
-            })
-            .finally(() => {
-                wakeLockRequest = null;
-            });
-    };
-
-    const syncWakeLock = () => {
-        if (shouldHoldWakeLock()) {
-            requestWakeLock();
-            return;
+            }
         }
-
-        void releaseWakeLock();
     };
+
+    function syncWakeLock() {
+        // Serialize request/release work and reconcile again if state changes while it is pending.
+        wakeLockSyncPending = true;
+        if (wakeLockReconcile) return;
+
+        wakeLockReconcile = reconcileWakeLock().finally(() => {
+            wakeLockReconcile = null;
+            if (wakeLockSyncPending) syncWakeLock();
+        });
+    }
 
     const onVisibilityChange = () => {
         syncWakeLock();
@@ -235,14 +245,16 @@ export const useSystemPlaybackControls = ({
     watch([playing, videoUrl], syncWakeLock);
 
     onMounted(() => {
+        wakeLockActive = true;
         setupMediaSession();
         document.addEventListener('visibilitychange', onVisibilityChange);
         syncWakeLock();
     });
 
     onBeforeUnmount(() => {
+        wakeLockActive = false;
         document.removeEventListener('visibilitychange', onVisibilityChange);
         clearMediaSession();
-        void releaseWakeLock();
+        syncWakeLock();
     });
 };
