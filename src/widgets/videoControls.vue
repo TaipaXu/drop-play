@@ -97,70 +97,87 @@
                     </div>
                 </div>
 
-                <!-- speed -->
-                <div ref="speedWrapRef" class="controls__speed-wrap">
+                <div ref="moreWrapRef" class="controls__more-wrap">
                     <button
-                    class="controls__btn controls__btn--speed"
-                    :title="t('speed')"
-                    :aria-label="t('speed')"
-                    :aria-expanded="showSpeed"
-                    @click="toggleSpeedMenu">
-                        {{ speedLabel }}
+                    class="controls__btn controls__btn--more"
+                    :title="t('more')"
+                    :aria-label="t('more')"
+                    :aria-expanded="showMore"
+                    @click="toggleMoreMenu">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                            <circle cx="5" cy="12" r="2" fill="currentColor" />
+                            <circle cx="12" cy="12" r="2" fill="currentColor" />
+                            <circle cx="19" cy="12" r="2" fill="currentColor" />
+                        </svg>
                     </button>
-                    <div v-if="showSpeed" class="controls__speed-menu">
-                        <label class="controls__speed-custom">
-                            <span class="controls__speed-input-wrap">
-                                <input
-                                type="number"
-                                class="controls__speed-input"
-                                :value="customSpeedInput"
-                                :min="playbackSpeedMin"
-                                :max="playbackSpeedMax"
-                                step="0.1"
-                                inputmode="decimal"
-                                :aria-label="t('speedCustomInput')"
-                                @input="onCustomSpeedInput"
-                                @change="commitCustomSpeedInput"
-                                @keydown.enter.prevent="commitCustomSpeedInput" />
-                                <span class="controls__speed-input-suffix">x</span>
-                            </span>
-                        </label>
+
+                    <div
+                    class="controls__secondary"
+                    :class="{ 'controls__secondary--open': showMore }">
+                        <!-- speed -->
+                        <div class="controls__speed-wrap">
+                            <button
+                            class="controls__btn controls__btn--speed"
+                            :title="t('speed')"
+                            :aria-label="t('speed')"
+                            :aria-expanded="showSpeed"
+                            @click="toggleSpeedMenu">
+                                {{ speedLabel }}
+                            </button>
+                            <div v-if="showSpeed" class="controls__speed-menu">
+                                <label class="controls__speed-custom">
+                                    <span class="controls__speed-input-wrap">
+                                        <input
+                                        type="number"
+                                        class="controls__speed-input"
+                                        :value="customSpeedInput"
+                                        :min="playbackSpeedMin"
+                                        :max="playbackSpeedMax"
+                                        step="0.1"
+                                        inputmode="decimal"
+                                        :aria-label="t('speedCustomInput')"
+                                        @input="onCustomSpeedInput"
+                                        @change="commitCustomSpeedInput"
+                                        @keydown.enter.prevent="commitCustomSpeedInput" />
+                                        <span class="controls__speed-input-suffix">x</span>
+                                    </span>
+                                </label>
+                                <button
+                                v-for="s in speeds"
+                                :key="s"
+                                class="controls__speed-option"
+                                :class="{ 'controls__speed-option--active': speed === s }"
+                                @click="selectSpeed(s)">
+                                    {{ s }}x
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- screenshot -->
                         <button
-                        v-for="s in speeds"
-                        :key="s"
-                        class="controls__speed-option"
-                        :class="{ 'controls__speed-option--active': speed === s }"
-                        @click="
-                            $emit('updateSpeed', s);
-                            showSpeed = false;
-                        ">
-                            {{ s }}x
+                        class="controls__btn controls__btn--secondary"
+                        @click="takeScreenshot"
+                        :title="t('screenshot')"
+                        :aria-label="t('screenshot')">
+                            <svg viewBox="0 0 24 24" width="20" height="20">
+                                <path
+                                d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"
+                                fill="currentColor" />
+                            </svg>
+                            <span class="controls__menu-label">{{ t('screenshot') }}</span>
+                        </button>
+
+                        <!-- hdr -->
+                        <button
+                        class="controls__btn controls__btn--hdr controls__btn--secondary"
+                        :class="{ 'controls__btn--active': hdrEnabled }"
+                        :title="t('hdr')"
+                        :aria-label="t('hdr')"
+                        @click="toggleHdr">
+                            {{ t('hdr') }}
                         </button>
                     </div>
                 </div>
-
-                <!-- screenshot -->
-                <button
-                class="controls__btn"
-                @click="$emit('takeScreenshot')"
-                :title="t('screenshot')"
-                :aria-label="t('screenshot')">
-                    <svg viewBox="0 0 24 24" width="20" height="20">
-                        <path
-                        d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"
-                        fill="currentColor" />
-                    </svg>
-                </button>
-
-                <!-- hdr -->
-                <button
-                class="controls__btn controls__btn--hdr"
-                :class="{ 'controls__btn--active': hdrEnabled }"
-                :title="t('hdr')"
-                :aria-label="t('hdr')"
-                @click="$emit('toggleHdr')">
-                    {{ t('hdr') }}
-                </button>
 
                 <!-- fullscreen -->
                 <button
@@ -218,8 +235,9 @@ const props = defineProps<{
 
 const speeds = playbackSpeeds;
 const showSpeed = ref(false);
+const showMore = ref(false);
 const customSpeedInput = ref('');
-const speedWrapRef = ref<HTMLElement | null>(null);
+const moreWrapRef = ref<HTMLElement | null>(null);
 const { t } = useI18n();
 
 const emit = defineEmits<{
@@ -283,6 +301,27 @@ const toggleSpeedMenu = () => {
     if (showSpeed.value) syncCustomSpeedInput();
 };
 
+const toggleMoreMenu = () => {
+    showMore.value = !showMore.value;
+    if (!showMore.value) showSpeed.value = false;
+};
+
+const selectSpeed = (value: number) => {
+    emit('updateSpeed', value);
+    showSpeed.value = false;
+    showMore.value = false;
+};
+
+const takeScreenshot = () => {
+    emit('takeScreenshot');
+    showMore.value = false;
+};
+
+const toggleHdr = () => {
+    emit('toggleHdr');
+    showMore.value = false;
+};
+
 const onCustomSpeedInput = (event: Event) => {
     customSpeedInput.value = (event.target as HTMLInputElement).value;
 };
@@ -311,28 +350,30 @@ const onVolumeWheel = (e: WheelEvent) => {
     emit('updateVolume', Math.round(newVolume * 100) / 100);
 };
 
-const closeSpeedMenuOnOutsidePointerDown = (event: PointerEvent) => {
-    if (!showSpeed.value) return;
+const closeMenusOnOutsidePointerDown = (event: PointerEvent) => {
+    if (!showSpeed.value && !showMore.value) return;
+    if (moreWrapRef.value && event.composedPath().includes(moreWrapRef.value)) return;
 
-    const speedWrap = speedWrapRef.value;
-    if (speedWrap && event.composedPath().includes(speedWrap)) return;
-
-    commitCustomSpeedInput();
+    if (showSpeed.value) commitCustomSpeedInput();
     showSpeed.value = false;
+    showMore.value = false;
 };
 
 onMounted(() => {
-    document.addEventListener('pointerdown', closeSpeedMenuOnOutsidePointerDown);
+    document.addEventListener('pointerdown', closeMenusOnOutsidePointerDown);
 });
 
 onBeforeUnmount(() => {
-    document.removeEventListener('pointerdown', closeSpeedMenuOnOutsidePointerDown);
+    document.removeEventListener('pointerdown', closeMenusOnOutsidePointerDown);
 });
 
 watch(
     () => props.visible,
     (visible) => {
-        if (!visible) showSpeed.value = false;
+        if (!visible) {
+            showSpeed.value = false;
+            showMore.value = false;
+        }
     },
 );
 
@@ -356,6 +397,7 @@ watch(
     transition: opacity 0.3s;
     pointer-events: none;
     z-index: 10;
+    container-type: inline-size;
 
     &--visible {
         opacity: 1;
@@ -492,6 +534,7 @@ watch(
         display: flex;
         align-items: center;
         gap: 8px;
+        min-width: 0;
     }
 
     &__btn {
@@ -539,6 +582,17 @@ watch(
         font-size: 13px;
         user-select: none;
         font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    &__more-wrap,
+    &__secondary {
+        display: contents;
+    }
+
+    &__btn--more,
+    &__menu-label {
+        display: none;
     }
 
     // volume
@@ -639,6 +693,74 @@ watch(
 
         &--active {
             color: #00a1d6;
+        }
+    }
+}
+
+@container (max-width: 360px) {
+    .controls {
+        &__bar {
+            padding: 0 8px;
+        }
+
+        &__left,
+        &__right {
+            gap: 4px;
+        }
+
+        &__more-wrap {
+            position: relative;
+            display: flex;
+        }
+
+        &__btn--more {
+            display: flex;
+        }
+
+        &__secondary {
+            position: absolute;
+            right: 0;
+            bottom: calc(100% + 8px);
+            display: none;
+            flex-direction: column;
+            align-items: stretch;
+            min-width: 144px;
+            padding: 6px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+
+            &--open {
+                display: flex;
+            }
+        }
+
+        &__btn--secondary,
+        &__btn--speed {
+            box-sizing: border-box;
+            justify-content: flex-start;
+            width: 100%;
+            min-height: 32px;
+            padding: 6px 10px;
+        }
+
+        &__btn--speed {
+            min-width: 0;
+        }
+
+        &__menu-label {
+            display: inline;
+            margin-left: 8px;
+        }
+
+        &__speed-menu {
+            right: 0;
+            bottom: 0;
+            left: auto;
+            top: auto;
+            transform: none;
+            margin-bottom: 0;
+            z-index: 1;
         }
     }
 }
