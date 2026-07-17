@@ -88,22 +88,21 @@
             @take-screenshot="takeScreenshot" />
         </div>
     </div>
-    <div
-    v-if="shortcutHelpOpen"
+    <dialog
+    ref="shortcutHelpDialogRef"
     class="shortcut-help"
-    role="presentation"
-    @click="closeShortcutHelp">
+    aria-labelledby="shortcut-help-title"
+    @click="onShortcutHelpBackdropClick"
+    @close="onShortcutHelpDialogClose">
         <section
         class="shortcut-help__panel"
-        role="dialog"
-        aria-modal="true"
-        :aria-label="t('shortcutHelpTitle')"
         @click.stop>
             <div class="shortcut-help__header">
-                <h2>{{ t('shortcutHelpTitle') }}</h2>
+                <h2 id="shortcut-help-title">{{ t('shortcutHelpTitle') }}</h2>
                 <button
                 class="shortcut-help__close"
                 type="button"
+                autofocus
                 :title="t('close')"
                 :aria-label="t('close')"
                 @click="closeShortcutHelp">
@@ -126,7 +125,7 @@
                 </div>
             </div>
         </section>
-    </div>
+    </dialog>
     <PlaylistPanel
     :open="playlistOpen"
     :items="playlist.items"
@@ -208,6 +207,7 @@ const shortcutRows: ShortcutRow[] = [
 
 const videoRef = ref<HTMLVideoElement | null>(null);
 const playerContainerRef = ref<HTMLElement | null>(null);
+const shortcutHelpDialogRef = ref<HTMLDialogElement | null>(null);
 const videoError = ref(false);
 
 const videoUrl = computed(() => playlist.currentItem?.url ?? null);
@@ -268,11 +268,28 @@ const chromeVisible = computed(
 );
 
 const closeShortcutHelp = () => {
+    if (shortcutHelpDialogRef.value?.open) shortcutHelpDialogRef.value.close();
     shortcutHelpOpen.value = false;
 };
 
 const toggleShortcutHelp = () => {
-    shortcutHelpOpen.value = !shortcutHelpOpen.value;
+    if (shortcutHelpOpen.value) {
+        closeShortcutHelp();
+        return;
+    }
+
+    shortcutHelpOpen.value = true;
+    if (shortcutHelpDialogRef.value && !shortcutHelpDialogRef.value.open) {
+        shortcutHelpDialogRef.value.showModal();
+    }
+};
+
+const onShortcutHelpBackdropClick = (event: MouseEvent) => {
+    if (event.target === event.currentTarget) closeShortcutHelp();
+};
+
+const onShortcutHelpDialogClose = () => {
+    shortcutHelpOpen.value = false;
 };
 
 const onVideoLoadedMetadata = () => {
@@ -531,10 +548,24 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
     padding: 24px;
+    border: 0;
     background: rgba(0, 0, 0, 0.44);
     box-sizing: border-box;
     color: var(--color-panel-text);
+
+    &:not([open]) {
+        display: none;
+    }
+
+    &::backdrop {
+        background: transparent;
+    }
 
     &__panel {
         width: min(460px, 100%);
