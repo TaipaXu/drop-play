@@ -256,7 +256,7 @@ export const useVideoPlayer = ({
     const isControlsClick = (event: MouseEvent) => {
         const target = event.target;
 
-        return target instanceof HTMLElement && !!target.closest('.controls');
+        return target instanceof Element && !!target.closest('.controls');
     };
 
     const onPlayerClick = (event: MouseEvent) => {
