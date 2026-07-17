@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.4.1 - 2026-07-17
+
+- Preserve the current play or pause state when double-clicking the player to toggle fullscreen.
+
 ## 0.4.0 - 2026-06-26
 
 - Clean up global language and theme system listeners during HMR and explicit disposal.
