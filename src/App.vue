@@ -138,7 +138,7 @@
     @remove="playlist.remove"
     @clear="playlist.clear"
     @sort="playlist.sort"
-    @add-files="playlist.addFilesAndPlay"
+    @add-files="playlist.addFiles"
     @move-item="playlist.moveItem" />
     <div
     class="app-tools"

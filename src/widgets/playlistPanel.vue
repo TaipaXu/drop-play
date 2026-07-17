@@ -8,6 +8,27 @@
         <div class="playlist__header">
             <span class="playlist__title">{{ t('playlistTitle') }} ({{ items.length }})</span>
             <div class="playlist__actions">
+                <!-- add files -->
+                <button
+                class="playlist__action-btn playlist__add-files"
+                type="button"
+                :title="t('addFiles')"
+                :aria-label="t('addFiles')"
+                @click="openFilePicker">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                        <path
+                        d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm0 2.8L17.2 8H14V4.8zM13 11h-2v3H8v2h3v3h2v-3h3v-2h-3v-3z"
+                        fill="currentColor" />
+                    </svg>
+                </button>
+                <input
+                ref="fileInputRef"
+                class="playlist__file-input"
+                type="file"
+                hidden
+                multiple
+                :accept="videoFileAccept"
+                @change="onFileInputChange" />
                 <!-- sort -->
                 <div class="playlist__sort-wrap">
                     <button
@@ -125,7 +146,7 @@
 <script setup vapor lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from '../composables/useI18n';
-import type { PlaylistItem, SortKey } from '../stores/playlist';
+import { videoFileAccept, type PlaylistItem, type SortKey } from '../stores/playlist';
 
 defineProps<{
     open: boolean;
@@ -138,6 +159,7 @@ defineProps<{
 const showSort = ref(false);
 const dragId = ref<string | null>(null);
 const dragOverId = ref<string | null>(null);
+const fileInputRef = ref<HTMLInputElement | null>(null);
 const { t } = useI18n();
 
 const sortOptions = computed<{ key: SortKey; label: string }[]>(() => [
@@ -158,6 +180,19 @@ const emit = defineEmits<{
     addFiles: [files: File[]];
     moveItem: [fromId: string, toId: string];
 }>();
+
+const openFilePicker = () => {
+    fileInputRef.value?.click();
+};
+
+const onFileInputChange = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+
+    if (files.length > 0) emit('addFiles', files);
+
+    input.value = '';
+};
 
 const onDragStart = (e: DragEvent, id: string) => {
     dragId.value = id;
@@ -277,6 +312,7 @@ const onDrop = (e: DragEvent) => {
     }
 
     &__action-btn {
+        position: relative;
         background: none;
         border: none;
         color: var(--color-panel-muted);
@@ -289,6 +325,13 @@ const onDrop = (e: DragEvent) => {
         &:hover:not(:disabled) {
             background: var(--color-panel-hover);
             color: var(--color-panel-text);
+        }
+
+        &:focus-within {
+            background: var(--color-panel-hover);
+            color: var(--color-panel-text);
+            outline: 2px solid var(--color-accent-strong);
+            outline-offset: 2px;
         }
 
         &:disabled {

@@ -9,6 +9,7 @@ const languageStorageKey = 'drop-play-language';
 
 const messages = {
     'zh-CN': {
+        addFiles: '添加文件',
         close: '关闭',
         clear: '清空',
         closePlaylist: '关闭列表',
@@ -68,6 +69,7 @@ const messages = {
         volume: '音量',
     },
     'en-US': {
+        addFiles: 'Add files',
         close: 'Close',
         clear: 'Clear',
         closePlaylist: 'Close playlist',
