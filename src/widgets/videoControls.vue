@@ -1,5 +1,10 @@
 <template>
-    <div class="controls" :class="{ 'controls--visible': visible }">
+    <div
+    class="controls"
+    :class="{ 'controls--visible': visible }"
+    :inert="!visible"
+    :aria-hidden="!visible"
+    data-player-chrome>
         <!-- progress bar -->
         <div
         class="controls__progress-bar"

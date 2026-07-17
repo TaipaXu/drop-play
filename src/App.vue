@@ -141,7 +141,12 @@
     @sort="playlist.sort"
     @add-files="playlist.addFilesAndPlay"
     @move-item="playlist.moveItem" />
-    <div class="app-tools" :class="{ 'app-tools--visible': chromeVisible }">
+    <div
+    class="app-tools"
+    :class="{ 'app-tools--visible': chromeVisible }"
+    :inert="!chromeVisible"
+    :aria-hidden="!chromeVisible"
+    data-player-chrome>
         <button
         class="shortcut-help-toggle"
         :class="{ 'shortcut-help-toggle--active': shortcutHelpOpen }"

@@ -1,5 +1,10 @@
 <template>
-    <div class="playlist" :class="{ 'playlist--open': open }">
+    <div
+    class="playlist"
+    :class="{ 'playlist--open': open }"
+    :inert="!open"
+    :aria-hidden="!open"
+    data-player-chrome>
         <div class="playlist__header">
             <span class="playlist__title">{{ t('playlistTitle') }} ({{ items.length }})</span>
             <div class="playlist__actions">
@@ -103,6 +108,9 @@
     <button
     class="playlist-toggle"
     :class="{ 'playlist-toggle--visible': visible }"
+    :inert="!visible"
+    :aria-hidden="!visible"
+    data-player-chrome
     @click="$emit('toggle')"
     :title="open ? t('closePlaylist') : t('openPlaylist')"
     :aria-label="open ? t('closePlaylist') : t('openPlaylist')">
