@@ -22,14 +22,24 @@ Drop Play is a lightweight local video player. Drop or choose video files on the
 
 ## Keyboard Shortcuts
 
-| Shortcut     | Action                   |
-| ------------ | ------------------------ |
-| `Space`      | Play / pause             |
-| `ArrowLeft`  | Seek backward 10 seconds |
-| `ArrowRight` | Seek forward 10 seconds  |
-| `N`          | Play next video          |
-| `P`          | Play previous video      |
-| `S`          | Take screenshot          |
+| Shortcut | Action                  |
+| -------- | ----------------------- |
+| `Space`  | Play / pause            |
+| `←`      | Seek back 10 seconds    |
+| `→`      | Seek forward 10 seconds |
+| `↑`      | Volume up               |
+| `↓`      | Volume down             |
+| `[`      | Decrease speed          |
+| `]`      | Increase speed          |
+| `P`      | Previous item           |
+| `N`      | Next item               |
+| `M`      | Mute / unmute           |
+| `F`      | Enter / exit fullscreen |
+| `S`      | Screenshot              |
+| `?`      | Show / hide shortcuts   |
+
+Compatible hardware media keys can also control play, pause, stop, and previous
+or next item when supported by the browser and keyboard.
 
 ## Tech Stack
 
