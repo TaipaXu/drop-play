@@ -2,11 +2,17 @@ import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 
 export interface PlaylistItem {
+    fileName: string;
     id: string;
     manualOrder: number;
     name: string;
     order: number;
     url: string;
+}
+
+export interface AddFilesResult {
+    accepted: string[];
+    rejected: string[];
 }
 
 export type SortKey = 'custom' | 'name-asc' | 'name-desc' | 'added-asc' | 'added-desc';
@@ -90,31 +96,44 @@ export const usePlaylistStore = defineStore('playlist', () => {
     };
 
     const appendFiles = (files: File[]) => {
-        const newItems: PlaylistItem[] = files.filter(isVideoFile).map((f) => ({
+        const acceptedFiles = files.filter(isVideoFile);
+        const rejectedFiles = files.filter((file) => !isVideoFile(file));
+        const newItems: PlaylistItem[] = acceptedFiles.map((file) => ({
+            fileName: file.name,
             id: createPlaylistId(),
             manualOrder: nextOrder,
-            name: f.name.replace(/\.[^.]+$/, ''),
+            name: file.name.replace(/\.[^.]+$/, ''),
             order: nextOrder++,
-            url: URL.createObjectURL(f),
+            url: URL.createObjectURL(file),
         }));
-        if (newItems.length === 0) return null;
-        items.value.push(...newItems);
-        applySort();
-        return newItems[0]?.id ?? null;
+        const result: AddFilesResult = {
+            accepted: acceptedFiles.map((file) => file.name),
+            rejected: rejectedFiles.map((file) => file.name),
+        };
+
+        if (newItems.length > 0) {
+            items.value.push(...newItems);
+            applySort();
+        }
+
+        return {
+            firstNewId: newItems[0]?.id ?? null,
+            result,
+        };
     };
 
     const addFiles = (files: File[]) => {
-        const firstNewId = appendFiles(files);
-        if (firstNewId === null) return;
-        if (currentId.value === null) {
+        const { firstNewId, result } = appendFiles(files);
+        if (firstNewId !== null && currentId.value === null) {
             currentId.value = firstNewId;
         }
+        return result;
     };
 
     const addFilesAndPlay = (files: File[]) => {
-        const firstNewId = appendFiles(files);
-        if (firstNewId === null) return;
-        currentId.value = firstNewId;
+        const { firstNewId, result } = appendFiles(files);
+        if (firstNewId !== null) currentId.value = firstNewId;
+        return result;
     };
 
     const removeItem = (id: string, selectFallback: boolean) => {
@@ -139,7 +158,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
     };
 
     const removeRejected = (id: string) => {
-        removeItem(id, false);
+        removeItem(id, true);
     };
 
     const clear = () => {

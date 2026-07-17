@@ -13,7 +13,7 @@
             :class="{ 'drop-zone__prompt--error': videoError }"
             :role="videoError ? 'alert' : undefined"
             :aria-live="videoError ? 'assertive' : undefined">
-                {{ t(dropPromptKey) }}
+                {{ videoError ? feedbackMessage : t('dropPrompt') }}
             </p>
             <label class="drop-zone__select">
                 <input
@@ -88,6 +88,18 @@
             @take-screenshot="takeScreenshot" />
         </div>
     </div>
+    <p
+    v-if="feedbackMessage && !videoError"
+    class="app-feedback"
+    :class="{
+        'app-feedback--error': feedbackIsError,
+        'app-feedback--warning': feedbackHasRejected && !feedbackIsError,
+    }"
+    :role="feedbackIsError ? 'alert' : 'status'"
+    :aria-live="feedbackIsError ? 'assertive' : 'polite'"
+    aria-atomic="true">
+        {{ feedbackMessage }}
+    </p>
     <dialog
     ref="shortcutHelpDialogRef"
     class="shortcut-help"
@@ -138,7 +150,7 @@
     @remove="playlist.remove"
     @clear="playlist.clear"
     @sort="playlist.sort"
-    @add-files="playlist.addFiles"
+    @add-files="onPlaylistAddFiles"
     @move-item="playlist.moveItem" />
     <div
     class="app-tools"
@@ -177,7 +189,7 @@ import { useI18n, type MessageKey } from './composables/useI18n';
 import { usePlayerShortcuts } from './composables/usePlayerShortcuts';
 import { useSystemPlaybackControls } from './composables/useSystemPlaybackControls';
 import { playbackSpeeds, useVideoPlayer } from './composables/useVideoPlayer';
-import { usePlaylistStore, videoFileAccept } from './stores/playlist';
+import { type AddFilesResult, usePlaylistStore, videoFileAccept } from './stores/playlist';
 
 const playlist = usePlaylistStore();
 const playlistOpen = ref(false);
@@ -210,12 +222,81 @@ const playerContainerRef = ref<HTMLElement | null>(null);
 const shortcutHelpDialogRef = ref<HTMLDialogElement | null>(null);
 const videoError = ref(false);
 
+type AppFeedback =
+    | {
+          acceptedCount: number;
+          kind: 'file-import';
+          rejectedNames: string[];
+      }
+    | {
+          code: number;
+          fileName: string;
+          kind: 'media-error';
+      };
+
+const feedback = ref<AppFeedback | null>(null);
+
 const videoUrl = computed(() => playlist.currentItem?.url ?? null);
 const activeVideoUrl = computed(() => (videoError.value ? null : videoUrl.value));
 const videoFileName = computed(() => playlist.currentItem?.name ?? '');
 const showDropZone = computed(() => videoUrl.value === null || videoError.value);
-const dropPromptKey = computed<MessageKey>(() =>
-    videoError.value ? 'videoCodecUnsupported' : 'dropPrompt',
+
+const getFileNameList = (names: string[]) => {
+    const visibleNames = names.slice(0, 3).join('、');
+    const remainingCount = names.length - 3;
+
+    return remainingCount > 0
+        ? `${visibleNames}${t('fileNamesMore', { count: remainingCount })}`
+        : visibleNames;
+};
+
+const mediaErrorMessageKey = (code: number): MessageKey => {
+    switch (code) {
+        case 1:
+            return 'videoErrorAborted';
+        case 2:
+            return 'videoErrorNetwork';
+        case 3:
+            return 'videoErrorDecode';
+        case 4:
+            return 'videoErrorUnsupported';
+        default:
+            return 'videoErrorUnknown';
+    }
+};
+
+const feedbackMessage = computed(() => {
+    const value = feedback.value;
+    if (!value) return '';
+
+    if (value.kind === 'media-error') {
+        return t(mediaErrorMessageKey(value.code), { name: value.fileName });
+    }
+
+    const rejectedCount = value.rejectedNames.length;
+    if (rejectedCount === 0) {
+        return t('fileImportAccepted', { count: value.acceptedCount });
+    }
+
+    const names = getFileNameList(value.rejectedNames);
+    if (value.acceptedCount === 0) {
+        return t('fileImportRejected', { count: rejectedCount, names });
+    }
+
+    return t('fileImportMixed', {
+        accepted: value.acceptedCount,
+        names,
+        rejected: rejectedCount,
+    });
+});
+
+const feedbackIsError = computed(
+    () =>
+        feedback.value?.kind === 'media-error' ||
+        (feedback.value?.kind === 'file-import' && feedback.value.acceptedCount === 0),
+);
+const feedbackHasRejected = computed(
+    () => feedback.value?.kind === 'file-import' && feedback.value.rejectedNames.length > 0,
 );
 
 const {
@@ -259,9 +340,25 @@ const hdrStyle = computed(() =>
     hdrEnabled.value ? { filter: 'contrast(1.12) saturate(1.15) brightness(1.05)' } : undefined,
 );
 
-const { dragging, onDragEnter, onDragLeave, onDragOver, onDrop } = useDropFiles(
-    playlist.addFilesAndPlay,
-);
+const setFileImportFeedback = (result: AddFilesResult) => {
+    feedback.value = {
+        acceptedCount: result.accepted.length,
+        kind: 'file-import',
+        rejectedNames: result.rejected,
+    };
+};
+
+const addFilesAndPlay = (files: File[]) => {
+    videoError.value = false;
+    setFileImportFeedback(playlist.addFilesAndPlay(files));
+};
+
+const onPlaylistAddFiles = (files: File[]) => {
+    setFileImportFeedback(playlist.addFiles(files));
+};
+
+const { dragging, onDragEnter, onDragLeave, onDragOver, onDrop } =
+    useDropFiles(addFilesAndPlay);
 const { controlsVisible, resetHideTimer } = useControlsVisibility(playing);
 const chromeVisible = computed(
     () => showDropZone.value || controlsVisible.value || shortcutHelpOpen.value,
@@ -297,15 +394,25 @@ const onVideoLoadedMetadata = () => {
     onLoadedMetadata();
 };
 
-const onVideoError = () => {
-    const failedItemId = playlist.currentItem?.id ?? null;
+const onVideoError = (event: Event) => {
+    const failedItem = playlist.currentItem;
+    if (!failedItem) return;
+
+    const video = event.currentTarget as HTMLVideoElement;
+
+    feedback.value = {
+        code: video.error?.code ?? 0,
+        fileName: failedItem.fileName,
+        kind: 'media-error',
+    };
 
     videoError.value = true;
     playlistOpen.value = false;
     closeShortcutHelp();
     resetPlaybackState();
 
-    if (failedItemId) playlist.removeRejected(failedItemId);
+    playlist.removeRejected(failedItem.id);
+    if (playlist.currentItem) videoError.value = false;
 };
 
 const onFileInputChange = (event: Event) => {
@@ -313,7 +420,7 @@ const onFileInputChange = (event: Event) => {
     const files = Array.from(input.files ?? []);
 
     if (files.length > 0) {
-        playlist.addFilesAndPlay(files);
+        addFilesAndPlay(files);
     }
 
     input.value = '';
@@ -766,6 +873,38 @@ body {
         clip: rect(0 0 0 0);
         clip-path: inset(50%);
         white-space: nowrap;
+    }
+}
+
+.app-feedback {
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    z-index: 250;
+    width: max-content;
+    max-width: min(680px, calc(100vw - 32px));
+    margin: 0;
+    padding: 10px 14px;
+    box-sizing: border-box;
+    transform: translateX(-50%);
+    border: 1px solid var(--color-floating-border);
+    border-radius: 8px;
+    background: var(--color-floating-bg);
+    box-shadow: var(--shadow-menu);
+    color: var(--color-floating-text);
+    font-size: 14px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+
+    &--warning {
+        border-color: var(--color-accent-strong);
+    }
+
+    &--error {
+        border-color: var(--color-danger);
+        color: var(--color-danger);
+        font-weight: 600;
     }
 }
 
