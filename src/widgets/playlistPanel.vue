@@ -4,9 +4,12 @@
     :class="{ 'playlist--open': open }"
     :inert="!open"
     :aria-hidden="!open"
+    ref="panelRef"
     data-player-chrome>
         <div class="playlist__header">
-            <span class="playlist__title">{{ t('playlistTitle') }} ({{ items.length }})</span>
+            <h2 id="playlist-title" class="playlist__title">
+                {{ t('playlistTitle') }} ({{ items.length }})
+            </h2>
             <div class="playlist__actions">
                 <!-- add files -->
                 <button
@@ -33,6 +36,7 @@
                 <div class="playlist__sort-wrap">
                     <button
                     class="playlist__action-btn"
+                    type="button"
                     @click="showSort = !showSort"
                     :title="t('sort')"
                     :aria-label="t('sort')">
@@ -47,6 +51,7 @@
                         v-for="opt in sortOptions"
                         :key="opt.key"
                         class="playlist__sort-option"
+                        type="button"
                         :class="{ 'playlist__sort-option--active': sortKey === opt.key }"
                         @click="
                             $emit('sort', opt.key);
@@ -59,6 +64,7 @@
                 <!-- clear -->
                 <button
                 class="playlist__action-btn"
+                type="button"
                 @click="$emit('clear')"
                 :title="t('clear')"
                 :aria-label="t('clear')"
@@ -72,6 +78,7 @@
                 <!-- close -->
                 <button
                 class="playlist__action-btn"
+                type="button"
                 @click="$emit('close')"
                 :title="t('close')"
                 :aria-label="t('close')">
@@ -90,11 +97,17 @@
         @drop.prevent="onDrop">
             {{ t('playlistEmpty') }}
         </div>
-        <div v-else class="playlist__list" @dragover.prevent @drop.prevent="onDrop">
-            <div
+        <ol
+        v-else
+        class="playlist__list"
+        aria-labelledby="playlist-title"
+        @dragover.prevent
+        @drop.prevent="onDrop">
+            <li
             v-for="(item, index) in items"
             :key="item.id"
             class="playlist__item"
+            :data-playlist-id="item.id"
             :class="{
                 'playlist__item--active': index === currentIndex,
                 'playlist__item--drag-over': dragOverId === item.id,
@@ -107,23 +120,53 @@
             @dragend="
                 dragId = null;
                 dragOverId = null;
-            "
-            @click="$emit('select', item.id)">
-                <span class="playlist__index">{{ index + 1 }}</span>
-                <span class="playlist__name" :title="item.name">{{ item.name }}</span>
+            ">
                 <button
-                class="playlist__remove"
-                @click.stop="$emit('remove', item.id)"
-                :title="t('remove')"
-                :aria-label="t('remove')">
-                    <svg viewBox="0 0 24 24" width="14" height="14">
-                        <path
-                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                        fill="currentColor" />
-                    </svg>
+                class="playlist__select"
+                type="button"
+                :aria-current="index === currentIndex ? 'true' : undefined"
+                @click="$emit('select', item.id)">
+                    <span class="playlist__index">{{ index + 1 }}</span>
+                    <span class="playlist__name" :title="item.name">{{ item.name }}</span>
                 </button>
-            </div>
-        </div>
+                <div class="playlist__item-actions">
+                    <button
+                    class="playlist__item-action"
+                    type="button"
+                    :disabled="index === 0"
+                    :title="t('moveUp')"
+                    :aria-label="itemActionLabel('moveUp', item.name)"
+                    @click="moveItem(index, -1)">
+                        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                            <path d="M7 14l5-5 5 5H7z" fill="currentColor" />
+                        </svg>
+                    </button>
+                    <button
+                    class="playlist__item-action"
+                    type="button"
+                    :disabled="index === items.length - 1"
+                    :title="t('moveDown')"
+                    :aria-label="itemActionLabel('moveDown', item.name)"
+                    @click="moveItem(index, 1)">
+                        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                            <path d="M7 10l5 5 5-5H7z" fill="currentColor" />
+                        </svg>
+                    </button>
+                    <button
+                    class="playlist__item-action playlist__remove"
+                    type="button"
+                    :title="t('remove')"
+                    :aria-label="itemActionLabel('remove', item.name)"
+                    @click="removeItem(item.id, index)">
+                        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                            <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                            fill="currentColor" />
+                        </svg>
+                    </button>
+                </div>
+            </li>
+        </ol>
     </div>
     <!-- toggle button -->
     <button
@@ -132,6 +175,7 @@
     :inert="!visible"
     :aria-hidden="!visible"
     data-player-chrome
+    type="button"
     @click="$emit('toggle')"
     :title="open ? t('closePlaylist') : t('openPlaylist')"
     :aria-label="open ? t('closePlaylist') : t('openPlaylist')">
@@ -144,11 +188,11 @@
 </template>
 
 <script setup vapor lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { useI18n } from '../composables/useI18n';
 import { videoFileAccept, type PlaylistItem, type SortKey } from '../stores/playlist';
 
-defineProps<{
+const props = defineProps<{
     open: boolean;
     items: PlaylistItem[];
     currentIndex: number;
@@ -160,6 +204,7 @@ const showSort = ref(false);
 const dragId = ref<string | null>(null);
 const dragOverId = ref<string | null>(null);
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const panelRef = ref<HTMLElement | null>(null);
 const { t } = useI18n();
 
 const sortOptions = computed<{ key: SortKey; label: string }[]>(() => [
@@ -192,6 +237,49 @@ const onFileInputChange = (event: Event) => {
     if (files.length > 0) emit('addFiles', files);
 
     input.value = '';
+};
+
+const itemActionLabel = (action: 'moveDown' | 'moveUp' | 'remove', name: string) =>
+    `${t(action)}: ${name}`;
+
+const findItemElement = (id: string) =>
+    Array.from(panelRef.value?.querySelectorAll<HTMLElement>('.playlist__item') ?? []).find(
+        (element) => element.dataset.playlistId === id,
+    );
+
+const moveItem = async (index: number, direction: -1 | 1) => {
+    const item = props.items[index];
+    const target = props.items[index + direction];
+
+    if (!item || !target) return;
+
+    emit('moveItem', item.id, target.id);
+    await nextTick();
+
+    const movedItem = findItemElement(item.id);
+    const actionIndex = direction === -1 ? 0 : 1;
+    const action = movedItem?.querySelectorAll<HTMLButtonElement>('.playlist__item-action')[
+        actionIndex
+    ];
+
+    if (action && !action.disabled) action.focus();
+    else movedItem?.querySelector<HTMLButtonElement>('.playlist__select')?.focus();
+};
+
+const removeItem = async (id: string, index: number) => {
+    const fallbackId = props.items[index + 1]?.id ?? props.items[index - 1]?.id ?? null;
+
+    emit('remove', id);
+    await nextTick();
+
+    if (fallbackId) {
+        findItemElement(fallbackId)
+            ?.querySelector<HTMLButtonElement>('.playlist__select')
+            ?.focus();
+        return;
+    }
+
+    panelRef.value?.querySelector<HTMLButtonElement>('.playlist__add-files')?.focus();
 };
 
 const onDragStart = (e: DragEvent, id: string) => {
@@ -300,6 +388,7 @@ const onDrop = (e: DragEvent) => {
     }
 
     &__title {
+        margin: 0;
         color: var(--color-panel-text);
         font-size: 14px;
         font-weight: 600;
@@ -393,7 +482,9 @@ const onDrop = (e: DragEvent) => {
     &__list {
         flex: 1;
         overflow-y: auto;
+        margin: 0;
         padding: 4px 0;
+        list-style: none;
 
         &::-webkit-scrollbar {
             width: 6px;
@@ -406,17 +497,19 @@ const onDrop = (e: DragEvent) => {
     }
 
     &__item {
+        position: relative;
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px 16px;
-        cursor: pointer;
         color: var(--color-panel-muted);
         font-size: 13px;
         transition: background 0.15s;
         user-select: none;
 
         &:hover {
+            background: var(--color-panel-hover);
+        }
+
+        &:focus-within {
             background: var(--color-panel-hover);
         }
 
@@ -430,8 +523,27 @@ const onDrop = (e: DragEvent) => {
         }
 
         &--drag-over {
-            border-top: 2px solid var(--color-accent);
-            padding-top: 8px;
+            box-shadow: inset 0 2px var(--color-accent);
+        }
+    }
+
+    &__select {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-width: 0;
+        padding: 10px 102px 10px 16px;
+        border: none;
+        background: none;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+
+        &:focus-visible {
+            outline: 2px solid var(--color-accent-strong);
+            outline-offset: -2px;
         }
     }
 
@@ -446,33 +558,69 @@ const onDrop = (e: DragEvent) => {
 
     &__name {
         flex: 1;
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
-    &__remove {
-        flex-shrink: 0;
+    &__item-actions {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        display: flex;
+        gap: 2px;
+        transform: translateY(-50%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s;
+
+        .playlist__item:hover &,
+        .playlist__item:focus-within & {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    }
+
+    &__item-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        padding: 0;
         background: none;
         border: none;
         color: var(--color-panel-faint);
         cursor: pointer;
-        padding: 2px;
-        border-radius: 2px;
-        display: flex;
-        align-items: center;
-        opacity: 0;
-        transition:
-            opacity 0.15s,
-            color 0.15s;
+        border-radius: 4px;
+        transition: color 0.15s, background 0.15s;
 
-        .playlist__item:hover & {
-            opacity: 1;
+        &:hover:not(:disabled) {
+            background: var(--color-panel-hover);
+            color: var(--color-panel-text);
         }
 
-        &:hover {
-            color: var(--color-danger);
+        &:focus-visible {
+            outline: 2px solid var(--color-accent-strong);
+            outline-offset: 1px;
         }
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.28;
+        }
+    }
+
+    &__remove:hover:not(:disabled) {
+        color: var(--color-danger);
+    }
+}
+
+@media (hover: none), (pointer: coarse) {
+    .playlist__item-actions {
+        opacity: 1;
+        pointer-events: auto;
     }
 }
 </style>
