@@ -59,6 +59,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
     const items = ref<PlaylistItem[]>([]);
     const currentId = ref<string | null>(null);
     const sortKey = ref<SortKey>('added-asc');
+    let nameCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
     let nextOrder = 0;
 
     const currentIndex = computed(() =>
@@ -75,10 +76,10 @@ export const usePlaylistStore = defineStore('playlist', () => {
                 items.value.sort((a, b) => a.manualOrder - b.manualOrder);
                 break;
             case 'name-asc':
-                items.value.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
+                items.value.sort((a, b) => nameCollator.compare(a.name, b.name));
                 break;
             case 'name-desc':
-                items.value.sort((a, b) => b.name.localeCompare(a.name, 'zh'));
+                items.value.sort((a, b) => nameCollator.compare(b.name, a.name));
                 break;
             case 'added-asc':
                 items.value.sort((a, b) => a.order - b.order);
@@ -200,8 +201,9 @@ export const usePlaylistStore = defineStore('playlist', () => {
         sortKey.value = 'custom';
     };
 
-    const sort = (key: SortKey) => {
+    const sort = (key: SortKey, locale: string) => {
         sortKey.value = key;
+        nameCollator = new Intl.Collator(locale, { numeric: true, sensitivity: 'base' });
         applySort();
     };
 

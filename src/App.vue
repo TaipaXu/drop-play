@@ -149,7 +149,7 @@
     @select="playlist.setCurrent"
     @remove="playlist.remove"
     @clear="playlist.clear"
-    @sort="playlist.sort"
+    @sort="sortPlaylist"
     @add-files="onPlaylistAddFiles"
     @move-item="playlist.moveItem" />
     <div
@@ -189,12 +189,17 @@ import { useI18n, type MessageKey } from './composables/useI18n';
 import { usePlayerShortcuts } from './composables/usePlayerShortcuts';
 import { useSystemPlaybackControls } from './composables/useSystemPlaybackControls';
 import { playbackSpeeds, useVideoPlayer } from './composables/useVideoPlayer';
-import { type AddFilesResult, usePlaylistStore, videoFileAccept } from './stores/playlist';
+import {
+    type AddFilesResult,
+    type SortKey,
+    usePlaylistStore,
+    videoFileAccept,
+} from './stores/playlist';
 
 const playlist = usePlaylistStore();
 const playlistOpen = ref(false);
 const shortcutHelpOpen = ref(false);
-const { t } = useI18n();
+const { locale, t } = useI18n();
 
 type ShortcutRow = {
     keys: string[];
@@ -357,6 +362,10 @@ const onPlaylistAddFiles = (files: File[]) => {
     setFileImportFeedback(playlist.addFiles(files));
 };
 
+const sortPlaylist = (key: SortKey) => {
+    playlist.sort(key, locale.value);
+};
+
 const { dragging, onDragEnter, onDragLeave, onDragOver, onDrop } =
     useDropFiles(addFilesAndPlay);
 const { controlsVisible, resetHideTimer } = useControlsVisibility(playing);
@@ -480,6 +489,11 @@ watch(videoUrl, (url) => {
     if (url !== null) videoError.value = false;
     resetPlaybackState();
     closeShortcutHelp();
+});
+watch(locale, (value) => {
+    if (playlist.sortKey === 'name-asc' || playlist.sortKey === 'name-desc') {
+        playlist.sort(playlist.sortKey, value);
+    }
 });
 watch(
     () => playlist.currentItem?.name,
