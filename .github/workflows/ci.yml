@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.17.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run static checks
+        run: pnpm exec vp check
+
+      - name: Lint Vue and HTML templates
+        run: pnpm exec vp run lint:templates
+
+      - name: Run unit tests
+        run: pnpm exec vp test
+
+      - name: Build production artifact
+        run: pnpm exec vp run build
+
+      - name: Smoke-test single-file output
+        run: pnpm exec vp run smoke:build

@@ -104,8 +104,12 @@ This makes Drop Play suitable for single-file distribution and offline use.
 ## Validation
 
 ```bash
-vp check
+vp run validate
 ```
+
+This runs static checks, template linting, unit tests, the production build, and
+a smoke check for the single-file HTML artifact. During development, run unit
+tests alone with `vp test` or in watch mode with `vp run test:watch`.
 
 Run `vp help` to see the full list of Vite+ commands, or `vp <command> --help` for command-specific help.
 

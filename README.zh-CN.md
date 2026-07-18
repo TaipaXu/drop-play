@@ -103,8 +103,12 @@ dist/drop-play.html
 ## 校验
 
 ```bash
-vp check
+vp run validate
 ```
+
+该命令会依次执行静态检查、模板检查、单元测试、生产构建和单文件 HTML
+产物冒烟检查。开发过程中可以用 `vp test` 单独运行测试，或用
+`vp run test:watch` 进入监听模式。
 
 也可以运行 `vp help` 查看 Vite+ 提供的完整命令列表，或运行 `vp <command> --help` 查看单个命令的帮助。
 

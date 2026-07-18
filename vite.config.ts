@@ -14,10 +14,16 @@ export default defineConfig({
         'index.html': 'eslint --fix',
         '**/*.vue': 'eslint --fix',
     },
+    test: {
+        environment: 'happy-dom',
+        include: ['tests/**/*.test.ts'],
+        restoreMocks: true,
+    },
     fmt: {
         ignorePatterns: [
             '**/*.vue',
             'index.html',
+            'PROJECT_AUDIT_REPORT.html',
             'node_modules/**',
             'dist/**',
             'dist-ssr/**',
