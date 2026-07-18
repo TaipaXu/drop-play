@@ -99,11 +99,8 @@ export default defineConfig({
                 const dist = path.resolve(process.cwd(), 'dist');
                 const src = path.join(dist, 'index.html');
                 const dest = path.join(dist, 'drop-play.html');
-                try {
-                    await fs.rename(src, dest);
-                } catch {
-                    // index.html not found, skip
-                }
+                await fs.rename(src, dest);
+                await fs.access(dest);
             },
             configurePreviewServer(server) {
                 server.middlewares.use(async (req, res, next) => {
