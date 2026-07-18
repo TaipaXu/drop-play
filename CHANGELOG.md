@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.5.0 - 2026-07-18
+
+- Add a GitHub project link to the app toolbar and display the current app version on the page.
+- Keep playback controls usable on narrow screens with an adaptive overflow menu for playback speed, screenshots, and HDR.
+- Add files directly from the open playlist, and make playlist selection, reordering, and removal accessible by keyboard and touch.
+- Show localized feedback for accepted and rejected files, provide detailed playback errors, and continue with a fallback playlist item when a video cannot be played.
+- Sort video names using the active interface language and update the order when the language changes.
+- Keep playback interactions and screenshot details tied to the correct video during rapid playlist switches.
+- Keep screen Wake Lock state consistent during rapid playback and visibility changes.
+- Improve focus handling, selected-state semantics, contrast, and keyboard navigation across player controls, the playlist, and the shortcuts dialog.
+
 ## 0.4.1 - 2026-07-17
 
 - Preserve the current play or pause state when double-clicking the player to toggle fullscreen.
