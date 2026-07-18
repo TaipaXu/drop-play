@@ -7,7 +7,6 @@
     "scripts": {
         "dev": "vp dev",
         "build": "run-p type-check \"build-only {@}\" --",
-        "deploy:pages": "bash scripts/deploy-pages.sh",
         "preview": "vp preview",
         "build-only": "vp build",
         "smoke:build": "node scripts/smoke-build.mjs",
