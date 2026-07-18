@@ -71,6 +71,7 @@ const messages = {
         themeSystemShort: '系统',
         themeTitle: '切换主题',
         unmute: '取消静音',
+        viewOnGitHub: '在 GitHub 上查看项目',
         videoErrorAborted: '已停止读取“{name}”，已跳过。',
         videoErrorDecode: '“{name}”无法解码，文件可能损坏或编码不受支持，已跳过。',
         videoErrorNetwork: '读取“{name}”时发生文件或网络错误，已跳过。',
@@ -143,6 +144,7 @@ const messages = {
         themeSystemShort: 'System',
         themeTitle: 'Switch theme',
         unmute: 'Unmute',
+        viewOnGitHub: 'View project on GitHub',
         videoErrorAborted: 'Stopped reading “{name}”; skipped it.',
         videoErrorDecode:
             'Could not decode “{name}”; the file may be damaged or use an unsupported codec. Skipped it.',
