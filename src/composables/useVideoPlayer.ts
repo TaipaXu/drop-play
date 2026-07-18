@@ -55,6 +55,13 @@ export const useVideoPlayer = ({
     let pendingSeekTime: number | null = null;
     let pendingSeekTimer: ReturnType<typeof setTimeout> | null = null;
 
+    const cancelPendingPlayerClick = () => {
+        if (clickTimer) clearTimeout(clickTimer);
+
+        clickTimer = null;
+        playerClickStartedPaused = null;
+    };
+
     const clearPendingSeek = () => {
         pendingSeekTime = null;
 
@@ -81,6 +88,7 @@ export const useVideoPlayer = ({
     };
 
     const resetPlaybackState = () => {
+        cancelPendingPlayerClick();
         clearPendingSeek();
         currentTime.value = 0;
         duration.value = 0;
@@ -285,20 +293,17 @@ export const useVideoPlayer = ({
     const onPlayerDblclick = (event: MouseEvent) => {
         if (isControlsClick(event)) return;
 
-        if (clickTimer) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
-        }
+        const startedPaused = playerClickStartedPaused;
+        cancelPendingPlayerClick();
 
         const video = videoRef.value;
-        if (video && playerClickStartedPaused !== null) {
-            if (playerClickStartedPaused && !video.paused) {
+        if (video && startedPaused !== null) {
+            if (startedPaused && !video.paused) {
                 video.pause();
-            } else if (!playerClickStartedPaused && video.paused) {
+            } else if (!startedPaused && video.paused) {
                 void video.play();
             }
         }
-        playerClickStartedPaused = null;
 
         toggleFullscreen();
     };
@@ -314,14 +319,15 @@ export const useVideoPlayer = ({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        const timestamp = formatTimeForFile(video.currentTime);
+        const baseName = getScreenshotBaseName();
+
         ctx.drawImage(video, 0, 0);
         canvas.toBlob((blob) => {
             if (!blob) return;
 
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            const timestamp = formatTimeForFile(video.currentTime);
-            const baseName = getScreenshotBaseName();
 
             link.href = url;
             link.download = `${baseName ? `${baseName}-${timestamp}` : `screenshot-${timestamp}`}.png`;
@@ -342,11 +348,8 @@ export const useVideoPlayer = ({
 
     onBeforeUnmount(() => {
         document.removeEventListener('fullscreenchange', onFullscreenChange);
+        cancelPendingPlayerClick();
         clearPendingSeek();
-
-        if (clickTimer) {
-            clearTimeout(clickTimer);
-        }
     });
 
     return {
