@@ -55,5 +55,5 @@ jobs:
           gh release create "$GITHUB_REF_NAME"
           dist/drop-play.html
           --verify-tag
-          --title "Drop Play $GITHUB_REF_NAME"
+          --title "$GITHUB_REF_NAME"
           --generate-notes
