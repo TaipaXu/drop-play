@@ -188,10 +188,19 @@
         <LanguageSwitcher :visible="chromeVisible" />
         <ThemeSwitcher :visible="chromeVisible" />
     </div>
+    <span
+    class="app-version"
+    :class="{ 'app-version--visible': chromeVisible }"
+    :title="t('projectVersion', { version: appVersion })"
+    :aria-label="t('projectVersion', { version: appVersion })"
+    data-player-chrome>
+        v{{ appVersion }}
+    </span>
 </template>
 
 <script setup vapor lang="ts">
 import { computed, ref, watch, onBeforeUnmount } from 'vue';
+import packageMetadata from '../package.json';
 import LanguageSwitcher from './widgets/languageSwitcher.vue';
 import ThemeSwitcher from './widgets/themeSwitcher.vue';
 import VideoControls from './widgets/videoControls.vue';
@@ -213,6 +222,7 @@ const playlist = usePlaylistStore();
 const playlistOpen = ref(false);
 const shortcutHelpOpen = ref(false);
 const { locale, t } = useI18n();
+const appVersion = packageMetadata.version;
 
 type ShortcutRow = {
     keys: string[];
@@ -651,6 +661,26 @@ body {
     }
 }
 
+.app-version {
+    position: fixed;
+    right: 16px;
+    bottom: 14px;
+    z-index: 90;
+    color: var(--color-panel-faint);
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    opacity: 0;
+    pointer-events: none;
+    user-select: text;
+    transition: opacity 0.3s;
+
+    &--visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
 .github-link,
 .shortcut-help-toggle {
     display: flex;
@@ -1012,6 +1042,11 @@ body {
 
     .drop-zone__prompt {
         max-width: 280px;
+    }
+
+    .app-version {
+        right: 12px;
+        bottom: 12px;
     }
 
     .shortcut-help {
